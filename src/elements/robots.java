@@ -17,6 +17,17 @@ public interface robots {
 	
 	public double getValue();
 	
-	public void DrawRobot(MyGameGUI game);
+	public void DrawRobot(MyGameGUI game,double minx,double miny,double maxx,double maxy);
+	
+	public void setClicked(boolean p);
+	
+	public boolean getClicked();
+	
+	public void chooseNextNode(int dest);
 
+	public void setSrc(int src);
+	
+	public void setPos(double x, double y);
+
+	public void setValue(double value);
 }

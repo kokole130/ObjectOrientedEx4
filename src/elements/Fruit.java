@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -55,16 +57,23 @@ public class Fruit implements fruits {
 		return "fruit- value:"+this.value+" ,type:"+this.type+" ,pos:"+this.pos;
 	}
 
-	public edge_data getEdge(List<edge_data> edges,List<node_data> nodes) {
+	public edge_data getEdge(HashMap<Integer,HashMap<Integer,edge_data>> edges,ArrayList<node_data> nodes) {
 		for (int i = 0; i < edges.size(); i++) {
-			int src=edges.get(i).getSrc();
-			int dest=edges.get(i).getDest();
-			double dist=nodes.get(src).getLocation().distance2D(nodes.get(dest).getLocation());
-			double d1=this.pos.distance2D(nodes.get(src).getLocation());
-			double d2=this.pos.distance2D(nodes.get(dest).getLocation());
+			for(edge_data e:edges.get(i).values()) {
+				int src=e.getSrc();
+				int dest=e.getDest();
+				double dist=nodes.get(src).getLocation().distance2D(nodes.get(dest).getLocation());
+				double d1=this.pos.distance2D(nodes.get(src).getLocation());
+				double d2=this.pos.distance2D(nodes.get(dest).getLocation());
 
-			if(d1+d2==dist||(d1+d2+EPS>dist&&d1+d2-EPS<dist)) {
-				return edges.get(i);
+				if(d1+d2==dist||(d1+d2+EPS>dist&&d1+d2-EPS<dist)) {
+					if(nodes.get(e.getSrc()).getLocation().y()>nodes.get(e.getDest()).getLocation().y()&&this.type==-1) {	
+						return e;
+					}
+					else if(nodes.get(e.getSrc()).getLocation().y()<nodes.get(e.getDest()).getLocation().y()&&this.type==1) {
+						return e;
+					}
+				}
 			}
 		}
 		return null;
@@ -86,10 +95,23 @@ public class Fruit implements fruits {
 			e.printStackTrace();
 		}
 		Graphics g = game.getGraphics();
-		
+
 		double xs=game.scale(this.pos.x(), minx, maxx, 100, 950);
 		double ys=game.scale(this.pos.y(), miny, maxy, 100, 950);
-		
-		g.drawImage(img,(int)xs,(int)ys, null);		
+
+		g.drawImage(img,(int)xs,(int)ys, null);	
+
+	}
+	
+	public void setType(int type) {
+		this.type=type;
+	}
+	
+	public void setValue(double value) {
+		this.value=value;
+	}
+	
+	public void setPos(String pos) {
+		this.pos=new Point3D(pos);
 	}
 }

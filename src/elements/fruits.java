@@ -13,4 +13,10 @@ public interface fruits {
 	
 	public void DrawFruit(MyGameGUI game,double minx,double miny,double maxx,double maxy);
 	
+	public void setType(int type);
+	
+	public void setValue(double value);
+
+	public void setPos(String pos);
+	
 }
