@@ -10,13 +10,13 @@ public class ClockThread extends Thread{
 	long seconds;
 	MyGameGUI g;
 	JLabel clock;
-	
+
 	public ClockThread(MyGameGUI game,JLabel label) {
 		this.seconds=game.game.timeToEnd()/1000;
 		this.clock=label;
 		this.g=game;
 	}
-	
+
 	public void run() {
 		for (int i = (int)this.seconds; i >=0; i--) {
 			int sec=(int)i;
@@ -31,7 +31,9 @@ public class ClockThread extends Thread{
 		}
 		g.game.stopGame();
 		g.isRun=false;
+		g.b.setEnabled(false);
+
 		System.out.println("time over");
 	}
-	
+
 }

@@ -17,7 +17,6 @@ import javax.xml.stream.util.EventReaderDelegate;
 
 import org.w3c.dom.css.RGBColor;
 
-import com.sun.prism.Image;
 
 import dataStructure.edge_data;
 import dataStructure.node_data;
