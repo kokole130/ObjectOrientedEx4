@@ -1,6 +1,8 @@
 package gameClient;
 
 import utils.StdDraw;
+
+import java.applet.Applet;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
@@ -80,12 +82,10 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		p.add(b);
-		//b.setLocation(1300, 110);
 		b.setVisible(true);
 		b.setEnabled(false);
 		b.addMouseListener(this);
 		b.addActionListener(this);
-		//clock.setBounds(1200, 60,150, 60);
 		p.add(clock);
 		p.add(value);
 		clock.setVisible(true);
@@ -193,9 +193,9 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 		}
 
 	}
-
 	public void updateRobots(String jsonStr) {
 		try {
+			
 			jsonStr="{"+'"'+"Robots"+'"'+":"+jsonStr+"}";
 			JSONObject object = new JSONObject(jsonStr);
 			JSONArray robot = object.getJSONArray("Robots");
@@ -246,6 +246,10 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 
 					if(AllRobotFree()) {
 						updateRobots(game.getRobots().toString());
+						repaint();
+						//this.enable
+						//enabledoubleBuffering
+						this.show();
 
 						for (int j = 0; j < robots.size(); j++) {
 							if(robots.get(j).getSrc()==v.getKey()) {
@@ -258,15 +262,14 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 							if(robots.get(j).getClicked()==true) {
 								updateRobots(game.getRobots().toString());
 								updateFruits(game.getFruits().toString());
+								
+								repaint();
+								this.show(true);
 								for(edge_data temp:graph.graph.edge.get(robots.get(j).getSrc()).values()) {
 									if(v.getKey()==temp.getDest()) {
-										//game.chooseNextEdge(robots.get(j).getID(), temp.getDest());
 										robots.get(j).setClicked(false);
 										this.robotID=robots.get(j).getID();
 										this.tempDest=v.getKey();
-										//robots.get(j).chooseNextNode(temp.getDest());
-										//										robotT[j]=new robotThread(this,robots.get(j));
-										//										robotT[j].start();
 									}
 								}	
 
@@ -300,9 +303,9 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 	public void paint(Graphics g) {
 
 		super.paint(g);
-
+		
 		g=(Graphics2D)g;
-
+				
 		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
 		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
 
@@ -316,13 +319,13 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 
 		DrawEdges(g, min, max);
 
-//		for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window
-//			this.fruits.get(i).DrawFruit(this,min.x(),min.y(),max.x(),max.y());
-//		}
-//
-//		for (int i = 0; i < robots.size(); i++) {
-//			robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
-//		}
+		for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window
+			this.fruits.get(i).DrawFruit(this,min.x(),min.y(),max.x(),max.y());
+		}
+
+		for (int i = 0; i < robots.size(); i++) {
+			robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
+		}
 
 	}
 
@@ -446,7 +449,7 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 			}
 		}
 	}
-
+	@Override
 	public void update(Graphics g) {
 		if(backGround==null) {
 			backGround=createImage(this.getSize().width, this.getSize().height);
@@ -455,9 +458,9 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 		doubleG.setColor(getBackground());
 		doubleG.fillRect(0, 0, this.getSize().width, this.getSize().height);
 		doubleG.setColor(getForeground());
-
 		paint(doubleG);
 
+		g.drawImage(backGround,0,0,this);
 		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
 		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
 
@@ -470,7 +473,6 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 		for (int i = 0; i < robots.size(); i++) {
 			robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
 		}
-
 	}
 
 	protected void initMinMax(Point3D min,Point3D max) {
@@ -522,18 +524,28 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 	public static void main(String[] args) {
 		MyGameGUI holut=new MyGameGUI();
 	}
-
+long start = System.currentTimeMillis();
 	@Override
 	public void run() {
 		while(game.isRunning()) {
+			updateFruits(game.getFruits().toString());
+			updateRobots(game.getRobots().toString());
 			moveRobots(game);
-			//repaint();
+			if(System.currentTimeMillis() - start> 1000/10)
+			{
+				repaint();
+				start = System.currentTimeMillis();
+			}
 			double sum=0;
+//			try {
+//				Thread.sleep(20);
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
 			for (int j = 0; j < robots.size(); j++) {
 				sum+=robots.get(j).getValue();
 			}
 			value.setText("Value: "+sum);
-			//System.out.println(tempDest);
 
 		}
 	}
@@ -564,7 +576,7 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 							}
 							game2.chooseNextEdge(rid, dest);
 						}
-						DrawRobot(this,pos);
+						//DrawRobot(this,pos);
 
 					}
 					catch(JSONException e) {
