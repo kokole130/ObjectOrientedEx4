@@ -33,7 +33,6 @@ public class ClockThread extends Thread{
 		g.isRun=false;
 		g.b.setEnabled(false);
 
-		System.out.println("time over");
 	}
 
 }
