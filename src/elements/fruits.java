@@ -29,8 +29,8 @@ public interface fruits {
 
 	public edge_data getEdge(HashMap<Integer, HashMap<Integer, Edge>> edge,ArrayList<Vertex> nodes);
 	
-	public boolean getTag();
+	public int getTag();
 	
-	public void setTag(boolean flag);
+	public void setTag(int flag);
 
 }

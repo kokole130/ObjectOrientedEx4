@@ -4,10 +4,13 @@ import java.awt.Graphics;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.imageio.ImageIO;
 
-
+import dataStructure.Vertex;
+import dataStructure.node_data;
 import gameClient.MyGameGUI;
 import gameClient.game;
 import utils.Point3D;
@@ -21,6 +24,7 @@ public class Robot implements robots{
 	double speed;
 	Point3D pos;
 	BufferedImage img;
+	List<node_data> nextPath=new ArrayList<node_data>();
 	public boolean clicked;
 	
 	
@@ -110,6 +114,17 @@ public class Robot implements robots{
 
 	public void setValue(double value) {
 		this.value=value;	
+	}
+
+	@Override
+	public List<node_data> getNextPath() {
+		return this.nextPath;
+	}
+
+	@Override
+	public void setNextPath(List<node_data> robotNextDest) {
+		this.nextPath=robotNextDest;
+		
 	}
 	
 }

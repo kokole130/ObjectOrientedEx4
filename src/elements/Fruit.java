@@ -30,14 +30,14 @@ public class Fruit implements fruits {
 	Point3D pos;
 	double value;
 	int type;
-	boolean tag;
+	int tag;
 	BufferedImage img;
 
 	public Fruit(double v,int t,Point3D p) {
 		this.value=v;
 		this.type=t;
 		this.pos=new Point3D(p);
-		this.tag=false;
+		this.tag=-1;
 	}
 
 	@Override
@@ -120,11 +120,11 @@ public class Fruit implements fruits {
 		this.pos=new Point3D(pos);
 	}
 	
-	public boolean getTag() {
+	public int getTag() {
 		return this.tag;
 	}
 	
-	public void setTag(boolean flag) {
+	public void setTag(int flag) {
 		this.tag=flag;
 	}
 }

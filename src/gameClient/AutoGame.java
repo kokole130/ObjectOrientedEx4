@@ -140,6 +140,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	long start = System.currentTimeMillis();
 	public  void moveRobots(game_service game2) {
 		if(game.isRunning()) {
+			initRobots(this.game.getRobots().toString());
 			ArrayList<String> log=(ArrayList<String>) game.move();
 			if(log!=null) {
 				for (int i = 0; i < log.size(); i++) {
@@ -155,12 +156,10 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 						Point3D pos=new Point3D(p);
 
 						if(dest==-1) {
-							//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-//							if(this.robotID==rid) {
-//								dest=tempDest;
-//								this.tempDest=-1;
-//								this.robotID=-1;
-//							}
+							if(robots.get(rid).getNextPath().size()==0) {
+								robots.get(rid).setNextPath(robotNextDest(rid));
+							}
+							dest=this.robots.get(rid).getNextPath().remove(0).getKey();
 							game2.chooseNextEdge(rid, dest);
 						}
 						//DrawRobot(this,pos);
@@ -513,7 +512,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		for (int i = 0; i < fruits.size(); i++) {
 			Vertex v = this.graph.graph.ver.get(fruits.get(i).getEdge(graph.graph.edge, graph.graph.ver).getSrc());
 			double tmp = graph.shortestPathDist(this.robots.get(robot).getSrc(),v.getKey());
-			if((tmp<minDistance)&&(!fruits.get(i).getTag())) {
+			if((tmp<minDistance)&&(fruits.get(i).getTag()==-1)) {
 				index=i;
 				minDistance = tmp;
 				s=graph.shortestPath(this.robots.get(robot).getSrc(),v.getKey());
@@ -524,7 +523,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		}
 		//adding the vertex after the fruit, in order to take the fruit
 		Vertex last = this.graph.graph.ver.get(fruits.get(index).getEdge(graph.graph.edge, graph.graph.ver).getDest());
-		fruits.get(index).setTag(true);
+		fruits.get(index).setTag(robot);
 		s.add(last);
 		return s;
 	}

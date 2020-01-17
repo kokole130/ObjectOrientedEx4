@@ -1,5 +1,9 @@
 package elements;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import dataStructure.node_data;
 import gameClient.MyGameGUI;
 import gameClient.game;
 import utils.Point3D;
@@ -31,4 +35,8 @@ public interface robots {
 	public void setPos(double x, double y);
 
 	public void setValue(double value);
+	
+	public List<node_data> getNextPath();
+
+	public void setNextPath(List<node_data> robotNextDest);
 }
