@@ -9,6 +9,7 @@ import javax.imageio.ImageIO;
 
 
 import gameClient.MyGameGUI;
+import gameClient.game;
 import utils.Point3D;
 
 public class Robot implements robots{
@@ -67,7 +68,8 @@ public class Robot implements robots{
 				" ,dest:"+this.dest+" ,speed:"+this.speed+" ,pos:"+this.pos;
 	}
 
-	public void DrawRobot(MyGameGUI game,double minx,double miny,double maxx,double maxy) {
+	@Override
+	public void DrawRobot(game game,double minx,double miny,double maxx,double maxy) {
 		String path="robot.png";
 		File file=new File(path);
 		try {

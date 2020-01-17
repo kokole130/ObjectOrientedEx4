@@ -43,25 +43,24 @@ import dataStructure.DGraph;
 import dataStructure.Vertex;
 import dataStructure.edge_data;
 
-public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Runnable{
+public class MyGameGUI extends JFrame implements game,ActionListener,MouseListener,Runnable{
 
 	Graph_Algo graph=new Graph_Algo();
 	ArrayList<fruits> fruits= new ArrayList<>();
 	ArrayList<robots> robots=new ArrayList<>();
-	int tempDest=-1;
-	int map;
+	JPanel p = new JPanel();
 	JLabel clock=new JLabel("Time:");
 	JLabel value=new JLabel("Value: 0");
 	JLabel gameover=new JLabel();
-	game_service game;
-	JPanel p = new JPanel();
 	JButton b = new JButton("Start Game!");
+	game_service game;
+	boolean isManual;
 	boolean isRun;
+	int tempDest=-1;
+	int map;
 	Image backGround;
 	Graphics doubleG;
 	int robotID;
-	boolean isManual;
-	AutoGame ag;
 
 	public MyGameGUI() {
 		isRun=false;
@@ -69,21 +68,23 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 		String manulOrAuto=JOptionPane.showInputDialog(frame,"Choose manual(1) game or automatic game(2).");
 		int check = Integer.parseInt(manulOrAuto);
 		if(check==1) {
+			InitGUI();
+			this.setVisible(true);
 			this.isManual=true;
 		}
 		else if(check==2) {
-			this.isManual=false;
+			AutoGame temp = new AutoGame();
 		}
 		else {
 			JOptionPane.showMessageDialog(frame, "invalid input Pick again!");
 		}
-		InitGUI();
-		this.setVisible(true);
+
+
 
 	}
 	
 
-	public void InitGUI() {
+	private void InitGUI() {
 
 		this.setSize(1400, 1000);
 		this.setLocationRelativeTo(null);
@@ -213,9 +214,9 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 					"Scenario",JOptionPane.QUESTION_MESSAGE,null,scenario,scenario[0]);
 			this.map=Integer.parseInt(choose);
 			game=Game_Server.getServer(this.map);
-			game_service temp=Game_Server.getServer(this.map);
-			this.graph.graph.init(temp.getGraph());
-			this.initFruits(temp.getFruits().toString());
+			System.out.println(game.toString());
+			this.graph.graph.init(game.getGraph());
+			this.initFruits(game.getFruits().toString());
 
 			repaint();
 		}
@@ -226,7 +227,6 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 			} catch (JSONException e1) {
 				e1.printStackTrace();
 			}
-			game_service temp=Game_Server.getServer(this.map);
 			Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
 			Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
 
@@ -251,8 +251,8 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 				t1.start();
 			}
 			else {
-				ag=new AutoGame();
-				this.robots=ag.initStartRobots(this.graph,this.robots,this.fruits,this.map);
+//				ag=new AutoGame();
+//				this.robots=ag.initStartRobots(this.graph,this.robots,this.fruits,this.map);
 				
 				
 				
@@ -288,7 +288,6 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 		if(game.isRunning()) {
 			ArrayList<String> log=(ArrayList<String>) game.move();
 			if(log!=null) {
-				System.out.println("log");
 				for (int i = 0; i < log.size(); i++) {
 					String robot_json=log.get(i);
 					try {
@@ -302,7 +301,6 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 						Point3D pos=new Point3D(p);
 
 						if(dest==-1) {
-							System.out.println("dest");
 							if(this.robotID==rid) {
 								dest=tempDest;
 								this.tempDest=-1;
@@ -343,23 +341,6 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 				}
 			}
 		}
-	}
-
-	/**
-	 * 
-	 * @param data denote some data to be scaled
-	 * @param r_min the minimum of the range of your data
-	 * @param r_max the maximum of the range of your data
-	 * @param t_min the minimum of the range of your desired target scaling
-	 * @param t_max the maximum of the range of your desired target scaling
-	 * @return
-	 */
-	public double scale(double data, double r_min, double r_max, 
-			double t_min, double t_max)
-	{
-
-		double res = ((data - r_min) / (r_max-r_min)) * (t_max - t_min) + t_min;
-		return res;
 	}
 
 
@@ -647,6 +628,59 @@ public class MyGameGUI extends JFrame implements ActionListener,MouseListener,Ru
 	public static void main(String[] args) {
 		MyGameGUI holut=new MyGameGUI();
 	}
+
+
+	@Override
+	public void setIsRun(boolean flag) {
+		this.isRun=flag;
+		
+	}
+
+
+	@Override
+	public game_service getGame() {
+		return this.game;
+	}
+
+	/**
+	 * 
+	 * @param pos denote some data to be scaled
+	 * @param minpos the minimum of the range of your data
+	 * @param maxpos the maximum of the range of your data
+	 * @param minf the minimum of the range of your desired target scaling
+	 * @param maxf the maximum of the range of your desired target scaling
+	 * @return
+	 */
+	@Override
+	public double scale(double pos, double minpos, double maxpos, int minf, int maxf) {
+
+		double res = ((pos - minpos) / (maxpos-minpos)) * (maxf - minf) + minf;
+		return res;
+	}
 	
+
+	/**
+	 * 
+	 * @param data denote some data to be scaled
+	 * @param r_min the minimum of the range of your data
+	 * @param r_max the maximum of the range of your data
+	 * @param t_min the minimum of the range of your desired target scaling
+	 * @param t_max the maximum of the range of your desired target scaling
+	 * @return
+	 */
+	public double scale(double data, double r_min, double r_max, 
+			double t_min, double t_max)
+	{
+
+		double res = ((data - r_min) / (r_max-r_min)) * (t_max - t_min) + t_min;
+		return res;
+	}
+
+
+	@Override
+	public double getTimeToEnd() {
+		return game.timeToEnd();
+	}
+
 }
 

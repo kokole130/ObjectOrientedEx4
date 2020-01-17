@@ -1,6 +1,7 @@
 package elements;
 
 import gameClient.MyGameGUI;
+import gameClient.game;
 import utils.Point3D;
 
 public interface robots {
@@ -17,7 +18,7 @@ public interface robots {
 	
 	public double getValue();
 	
-	public void DrawRobot(MyGameGUI game,double minx,double miny,double maxx,double maxy);
+	public void DrawRobot(game game,double minx,double miny,double maxx,double maxy);
 	
 	public void setClicked(boolean p);
 	

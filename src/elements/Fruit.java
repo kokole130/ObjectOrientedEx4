@@ -17,23 +17,27 @@ import javax.xml.stream.util.EventReaderDelegate;
 
 import org.w3c.dom.css.RGBColor;
 
-
+import dataStructure.Edge;
+import dataStructure.Vertex;
 import dataStructure.edge_data;
 import dataStructure.node_data;
 import gameClient.MyGameGUI;
+import gameClient.game;
 import utils.Point3D;
 
 public class Fruit implements fruits {
-	public final double EPS=0.0001;
-	public Point3D pos;
-	public double value;
-	public int type;
+	final double EPS=0.0001;
+	Point3D pos;
+	double value;
+	int type;
+	boolean tag;
 	BufferedImage img;
 
 	public Fruit(double v,int t,Point3D p) {
 		this.value=v;
 		this.type=t;
 		this.pos=new Point3D(p);
+		this.tag=false;
 	}
 
 	@Override
@@ -56,9 +60,10 @@ public class Fruit implements fruits {
 		return "fruit- value:"+this.value+" ,type:"+this.type+" ,pos:"+this.pos;
 	}
 
-	public edge_data getEdge(HashMap<Integer,HashMap<Integer,edge_data>> edges,ArrayList<node_data> nodes) {
-		for (int i = 0; i < edges.size(); i++) {
-			for(edge_data e:edges.get(i).values()) {
+	@Override
+	public edge_data getEdge(HashMap<Integer, HashMap<Integer, Edge>> edge,ArrayList<Vertex> nodes) {
+		for (int i = 0; i < edge.size(); i++) {
+			for(edge_data e:edge.get(i).values()) {
 				int src=e.getSrc();
 				int dest=e.getDest();
 				double dist=nodes.get(src).getLocation().distance2D(nodes.get(dest).getLocation());
@@ -66,10 +71,10 @@ public class Fruit implements fruits {
 				double d2=this.pos.distance2D(nodes.get(dest).getLocation());
 
 				if(d1+d2==dist||(d1+d2+EPS>dist&&d1+d2-EPS<dist)) {
-					if(nodes.get(e.getSrc()).getLocation().y()>nodes.get(e.getDest()).getLocation().y()&&this.type==-1) {	
+					if(nodes.get(e.getSrc()).getLocation().y()>nodes.get(e.getDest()).getLocation().y()&&this.type==1) {	
 						return e;
 					}
-					else if(nodes.get(e.getSrc()).getLocation().y()<nodes.get(e.getDest()).getLocation().y()&&this.type==1) {
+					else if(nodes.get(e.getSrc()).getLocation().y()<nodes.get(e.getDest()).getLocation().y()&&this.type==-1) {
 						return e;
 					}
 				}
@@ -78,10 +83,11 @@ public class Fruit implements fruits {
 		return null;
 	}
 
-	public void DrawFruit(MyGameGUI game,double minx,double miny,double maxx,double maxy) {
+	@Override
+	public void DrawFruit(game game,double minx,double miny,double maxx,double maxy) {
 		String banana="banana.png";
 		String apple="apple.png";
-		File file;
+		
 		try {
 			if(this.type==-1) {
 				img =  ImageIO.read(new File(banana));
@@ -112,5 +118,13 @@ public class Fruit implements fruits {
 	
 	public void setPos(String pos) {
 		this.pos=new Point3D(pos);
+	}
+	
+	public boolean getTag() {
+		return this.tag;
+	}
+	
+	public void setTag(boolean flag) {
+		this.tag=flag;
 	}
 }
