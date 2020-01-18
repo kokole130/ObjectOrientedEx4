@@ -103,7 +103,9 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 //		ImageIcon img=new ImageIcon("space1.png");
 //		bg=new JLabel("",img,JLabel.CENTER);
 //		bg.setBounds(0, 0, 1400, 1000);
+//		bg.setBackground(getBackground());
 //		this.add(bg);
+//		this.add(b);
 		p.add(b);
 		b.setVisible(true);
 		b.setEnabled(false);
@@ -170,7 +172,6 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 					if(AllRobotFree()) {//if there is no robot that the user press on it.
 						updateRobots(game.getRobots().toString());
-						repaint();
 						for (int j = 0; j < robots.size(); j++) {
 							if(robots.get(j).getSrc()==v.getKey()) {
 								robots.get(j).setClicked(true);
@@ -183,7 +184,6 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 								updateRobots(game.getRobots().toString());
 								updateFruits(game.getFruits().toString());
 
-								repaint();
 								for(edge_data temp:graph.graph.edge.get(robots.get(j).getSrc()).values()) {
 									if(v.getKey()==temp.getDest()) {
 										robots.get(j).setClicked(false);
@@ -449,14 +449,16 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
 
 		initMinMax(min, max);
-
-		for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window
-			this.fruits.get(i).DrawFruit(this,min.x(),min.y(),max.x(),max.y());
+		synchronized (this) {
+			for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window
+				this.fruits.get(i).DrawFruit(this,min.x(),min.y(),max.x(),max.y());
+			}
+			for (int i = 0; i < robots.size(); i++) {
+				robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
+			}
 		}
 
-		for (int i = 0; i < robots.size(); i++) {
-			robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
-		}
+
 	}
 
 //INIT***************************INTIALIZE MAP OBJECTS******************************************************

@@ -52,7 +52,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	int map;
 	Image backGround;
 	Graphics doubleG;
-	
+
 	/**
 	 * constructor for the automatic game
 	 */
@@ -168,7 +168,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		repaint();
 
 	}
-	
+
 	/**
 	 * function that takes from the server the number of robots for the specific map.
 	 * @param scenario - the map
@@ -183,7 +183,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	}
 
 	long start = System.currentTimeMillis();
-	
+
 	/**
 	 * function that gets from the server the location of the robots and the fruits,
 	 * in time the game is running, and draw them after the changes.
@@ -191,7 +191,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	 */
 	public  void moveRobots(game_service game2) {
 		if(game.isRunning()) {
-			initRobots(this.game.getRobots().toString());
+
+			updateRobots(this.game.getRobots().toString());
 			ArrayList<String> log=(ArrayList<String>) game.move();
 			if(log!=null) {
 				for (int i = 0; i < log.size(); i++) {
@@ -205,28 +206,57 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 						String p=r.getString("pos");
 						int val=r.getInt("value");
 						Point3D pos=new Point3D(p);
+						
+						Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
+						Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
 
+						initMinMax(min, max);
+						
+//						System.out.println(dest+"@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+//						for (int j = 0; j < fruits.size(); j++) {
+//							System.out.println(fruits.get(j).getTag());
+//							double rx=scale(pos.x(), min.x(), max.x(), 100, 950);
+//							double ry=scale(pos.y(), min.y(), max.y(), 100, 950);
+//							double fx=scale(fruits.get(j).getLocation().x(), min.x(), max.x(), 100, 950);
+//							double fy=scale(fruits.get(j).getLocation().y(), min.y(), max.y(), 100, 950);
+//							Point3D rob=new Point3D(rx, ry);
+//							Point3D fru=new Point3D(fx, fy);
+//							if(Math.abs(rob.distance2D(fru))<5) {
+//								fruits.get(j).setTag(-1);
+//							}
+//
+//						}
+						
 						if(dest==-1) {
-							if(robots.get(rid).getNextPath().size()==0) {
+							if((robots.get(rid).getNextPath()).size()==0) {
 								robots.get(rid).setNextPath(robotNextDest(rid));
+								updateFruits(game.getFruits().toString());
 							}
-							dest=this.robots.get(rid).getNextPath().remove(0).getKey();
+							else{
+								dest=this.robots.get(rid).getNextPath().remove(0).getKey();
+							}
+							System.out.println("@@@@@@@@");
+							for (int j = 0; j < fruits.size(); j++) {
+								System.out.println(fruits.get(j).getTag());
+								if(fruits.get(j).getEdge(graph.graph.edge, graph.graph.ver).getDest()==dest) {
+									fruits.get(j).setTag(-1);
+								}
+							}
+							
 							game2.chooseNextEdge(rid, dest);
 						}
-						//DrawRobot(this,pos);
 
 					}
 					catch(JSONException e) {
 						e.printStackTrace();
 					}
-
 				}
 			}
 			update(getGraphics());
 		}
 	}
 
-//SCLAES***************************SCALES INITIALIZE*******************************************************
+	//SCLAES***************************SCALES INITIALIZE*******************************************************
 
 	/**
 	 * function that set the minimum x and y and the maximum x and y on 2 points. (for a good mapping on the window)
@@ -270,8 +300,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		return res;
 	}
 
-//INIT***************************INTIALIZE MAP OBJECTS******************************************************
-	
+	//INIT***************************INTIALIZE MAP OBJECTS******************************************************
+
 	/**
 	 * Side function that initial all the fruits from json string. 
 	 * @param jsonStr - json string 
@@ -297,7 +327,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * function that update the location of all the fruits when the game is running.
 	 * @param jsonStr - json string.
@@ -394,7 +424,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 
 	}
 
-//DRAW***************************DRAW FUNCTIONS*************************************************************
+	//DRAW***************************DRAW FUNCTIONS*************************************************************
 
 	/**
 	 * function that draw the graph, fruits and the robots on the window in all stages of the game.
@@ -511,10 +541,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 						g.setColor(Color.yellow);
 						g.fillOval(x-5, y-5, 10, 10);
 						g.setColor(Color.RED);
-						//
-						//							g.drawString(this.graph.graph.edge.get(i).get(j).getWeight()+"",
-						//									(int)((xs1+xs2)/2),
-						//									(int)((ys1+ys2)/2));													
+
 					}
 				}
 			}
@@ -549,19 +576,19 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			updateFruits(game.getFruits().toString());
 			updateRobots(game.getRobots().toString());
 			moveRobots(game);
+			
 			if(System.currentTimeMillis() - start> 1000/10){
+				
 				repaint();
 				start = System.currentTimeMillis();
 			}
-			
+
 			sum=0;
 			for (int j = 0; j < robots.size(); j++) {
 				sum+=robots.get(j).getValue();
 			}
 			value.setText("Value: "+sum);
 		}
-
-
 	}
 
 	/**
@@ -583,7 +610,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	 * 
 	 */
 	private void robotsFirstLocating() {
-		initFruits(game.getFruits().toString());
+		updateFruits(game.getFruits().toString());
 		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
 		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
 		initMinMax(min, max);
@@ -603,7 +630,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		}
 		initRobots(game.getRobots().toString());
 	}
-	
+
 	/**
 	 * Function that computing the full next path of any robot to get to the fruit.
 	 * @param robot id(not vertex)
@@ -613,26 +640,30 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		int index=-1;
 		double minDistance=Integer.MAX_VALUE;
 		List <node_data> s = new ArrayList<>();
-		initFruits(game.getFruits().toString());
+		updateFruits(game.getFruits().toString());
 		for (int i = 0; i < fruits.size(); i++) {
-			Vertex v = this.graph.graph.ver.get(fruits.get(i).getEdge(graph.graph.edge, graph.graph.ver).getSrc());
-			double tmp = graph.shortestPathDist(this.robots.get(robot).getSrc(),v.getKey());
-			if((tmp<minDistance)&&(fruits.get(i).getTag()==-1)) {
-				index=i;
-				minDistance = tmp;
-				s=graph.shortestPath(this.robots.get(robot).getSrc(),v.getKey());
+			if(isRun) {
+					Vertex v = this.graph.graph.ver.get(fruits.get(i).getEdge(graph.graph.edge, graph.graph.ver).getSrc());
+					double tmp = graph.shortestPathDist(this.robots.get(robot).getSrc(),v.getKey());
+					if((tmp<minDistance)&&(fruits.get(i).getTag()==-1)) {
+						index=i;
+						minDistance = tmp;
+						s=graph.shortestPath(this.robots.get(robot).getSrc(),v.getKey());
+					}
+				}
 			}
-		}
+		
 		if(index == -1) {
-			return null;
+			return new ArrayList<node_data>();
 		}
 		//adding the vertex after the fruit, in order to take the fruit
 		Vertex last = this.graph.graph.ver.get(fruits.get(index).getEdge(graph.graph.edge, graph.graph.ver).getDest());
 		fruits.get(index).setTag(robot);
 		s.add(last);
+		s.remove(0);
 		return s;
 	}
-	
+
 	/**
 	 * function that returns the time left to the game.
 	 */
@@ -640,6 +671,4 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	public double getTimeToEnd() {
 		return game.timeToEnd();
 	}
-
-
 }
