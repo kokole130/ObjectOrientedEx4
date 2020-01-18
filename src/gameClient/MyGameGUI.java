@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -46,14 +47,14 @@ import dataStructure.edge_data;
 public class MyGameGUI extends JFrame implements game,ActionListener,MouseListener,Runnable{
 
 	Graph_Algo graph=new Graph_Algo();
-	ArrayList<fruits> fruits= new ArrayList<>();
-	ArrayList<robots> robots=new ArrayList<>();
+	public ArrayList<fruits> fruits= new ArrayList<>();
+	public ArrayList<robots> robots=new ArrayList<>();
 	JPanel p = new JPanel();
 	JLabel clock=new JLabel("Time:");
 	JLabel value=new JLabel("Value: 0");
 	JLabel gameover=new JLabel();
 	JButton b = new JButton("Start Game!");
-	game_service game;
+	public game_service game;
 	boolean isManual;
 	boolean isRun;
 	int tempDest=-1;
@@ -61,7 +62,12 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	Image backGround;
 	Graphics doubleG;
 	int robotID;
-
+	
+	
+	/**
+	 * constructor that initial the game , open a dialog text, the user choose the game and the map he wants
+	 * and then start the game.
+	 */
 	public MyGameGUI() {
 		isRun=false;
 		JFrame frame = new JFrame();
@@ -83,13 +89,21 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 	}
 	
-
+	/**
+	 * Side function that create all the window, the buttons and the game interface.
+	 */
 	private void InitGUI() {
 
 		this.setSize(1400, 1000);
 		this.setLocationRelativeTo(null);
-
+		
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+//		JLabel bg;
+//		ImageIcon img=new ImageIcon("space1.png");
+//		bg=new JLabel("",img,JLabel.CENTER);
+//		bg.setBounds(0, 0, 1400, 1000);
+//		this.add(bg);
 		p.add(b);
 		b.setVisible(true);
 		b.setEnabled(false);
@@ -123,7 +137,6 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		setgame.addActionListener(this);
 		addRobot.addActionListener(this);
 
-
 		this.addMouseListener(this);
 
 		this.setVisible(true);
@@ -135,7 +148,12 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	public void mouseClicked(MouseEvent e) {
 
 	}
-
+	
+	/**
+	 * Side function for the manual game.
+	 * the function recognize when the user press on a vertex where there exist a robot , then
+	 * the user press the destination he want to pass with the robot - and the robot pass to this destination.
+	 */
 	@Override
 	public void mousePressed(MouseEvent e) {
 		if(isRun&&isManual) {
@@ -148,9 +166,9 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 				Vertex v=graph.graph.ver.get(i).copy();
 				double xs=scale(v.getLocation().x(),min.x(),max.x(),100,950);
 				double ys=scale(v.getLocation().y(),min.y(),max.y(),100,950);
-				if((xs+15>x&&x>xs-15)&&(ys+15>y&&y>ys-15)) {
+				if((xs+15>x&&x>xs-15)&&(ys+15>y&&y>ys-15)) {//the radius the user should pres
 
-					if(AllRobotFree()) {
+					if(AllRobotFree()) {//if there is no robot that the user press on it.
 						updateRobots(game.getRobots().toString());
 						repaint();
 						for (int j = 0; j < robots.size(); j++) {
@@ -159,7 +177,7 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 							}
 						}
 					}
-					else {
+					else {//the case that one robot pressed and the user press the destination to pass.
 						for (int j = 0; j < robots.size(); j++) {
 							if(robots.get(j).getClicked()==true) {
 								updateRobots(game.getRobots().toString());
@@ -200,7 +218,13 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 	}
 
-		@Override
+	/**
+	 * The main function that manage a dialog between the game to the user.
+	 * first- the user should press set game , to initial a specific map ,
+	 * then- dialog was created for the user add the robots anywhere we wants .(if the game is manual)
+	 * and finally - the user press start game with the aim of gathering as much fruit as possible.
+	 */
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		String ans=e.getActionCommand();
 		if(ans.equals("Set Game")) {
@@ -267,13 +291,22 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 //ROBOT***************************ROBOT SIDE FUNCTIONS****************************************************
 		
+	/**
+	 * function that takes from the server the number of robots for the specific map.
+	 * @param scenario - the map
+	 * @return the number of the robots
+	 * @throws JSONException - if should a problem with the server
+	 */
 	public int getNumOfRobots(int scenario) throws JSONException {
 		game_service temp=Game_Server.getServer(scenario);
 		JSONObject object=new JSONObject(temp.toString());
 		int num=object.getJSONObject("GameServer").getInt("robots");
 		return num;
 	}
-
+	/**
+	 * Side function for the manual game that check if all the robot are free from pressing.
+	 * @return false if at least one of the robot are pressed and true if all the robots are free.
+	 */
 	private boolean AllRobotFree() {
 		for (int i = 0; i < robots.size(); i++) {
 			if(robots.get(i).getClicked()==true) {
@@ -284,6 +317,12 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	}
 
 	long start = System.currentTimeMillis();
+	
+	/**
+	 * function that gets from the server the location of the robots and the fruits,
+	 * in time the game is running, and draw them after the changes.
+	 * @param game2
+	 */
 	public  void moveRobots(game_service game2) {
 		if(game.isRunning()) {
 			ArrayList<String> log=(ArrayList<String>) game.move();
@@ -322,7 +361,13 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	}
 	
 //SCLAES***************************SCALES INITIALIZE*******************************************************
-
+	
+	
+	/**
+	 * function that set the minimum x and y and the maximum x and y on 2 points. (for a good mapping on the window)
+	 * @param min - minimum point
+	 * @param max - maximum point
+	 */
 	public void initMinMax(Point3D min,Point3D max) {
 		for (int i = 0; i < this.graph.graph.ver.size(); i++) {
 			if(this.graph.graph.ver.get(i) != null) {
@@ -346,6 +391,11 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 //THREAD***************************THREADS*****************************************************************
 	
+	/**
+	 * the function that invoked at the moment the user press on start game.
+	 * the function gets the location of the robots and fruits , draw them at the correct location,
+	 * calculates at the same time the value of the user , and when the game is over - present the score to the user.
+	 */
 	@Override
 	public void run() {
 		double sum=0;
@@ -379,6 +429,10 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		
 	}
 	
+	/**
+	 * Side function that set the background on another 'Graphics' after we draw the graph,
+	 * for double buffering.
+	 */
 	@Override
 	public void update(Graphics g) {
 		if(backGround==null) {
@@ -407,6 +461,10 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 //INIT***************************INTIALIZE MAP OBJECTS******************************************************
 	
+	/**
+	 * Side function that initial all the fruits from json string. 
+	 * @param jsonStr - json string 
+	 */
 	public void initFruits(String jsonStr) {
 		try {
 			jsonStr="{"+'"'+"Fruits"+'"'+":"+jsonStr+"}";
@@ -428,7 +486,11 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 			e.printStackTrace();
 		}
 	}
-
+	
+	/**
+	 * function that update the location of all the fruits when the game is running.
+	 * @param jsonStr - json string.
+	 */
 	public void updateFruits(String jsonStr) {
 		try {
 			jsonStr="{"+'"'+"Fruits"+'"'+":"+jsonStr+"}";
@@ -455,7 +517,11 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 			e.printStackTrace();
 		}
 	}
-
+	
+	/**
+	 * function that initial the location of all the robots from a json stirng.
+	 * @param jsonStr - json string
+	 */
 	public void initRobots(String jsonStr) {
 		try {
 			jsonStr="{"+'"'+"Robots"+'"'+":"+jsonStr+"}";
@@ -482,6 +548,10 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 	}
 	
+	/**
+	 * function that update the location of all the robots at the game is running.
+	 * @param jsonStr - json string
+	 */
 	public void updateRobots(String jsonStr) {
 		try {
 
@@ -516,6 +586,9 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 //DRAW***************************DRAW FUNCTIONS*************************************************************
 	
+	/**
+	 * function that draw the graph, fruits and the robots on the window in all stages of the game.
+	 */
 	public void paint(Graphics g) {
 
 		super.paint(g);
@@ -545,6 +618,11 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 	}
 	
+	/**
+	 * function that draw a robot on the window according to the point we get.
+	 * @param game - this game
+	 * @param pos - the location to draw
+	 */
 	public void DrawRobot(MyGameGUI game,Point3D pos) {
 		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
 		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
@@ -564,7 +642,13 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		double ys=game.scale(pos.y(), min.y(), max.y(), 100, 950);
 		g.drawImage(img,(int)xs,(int)ys, null);
 	}
-
+	
+	/**
+	 * function that draw all the vertex on the window
+	 * @param g - this graphics
+	 * @param min - minimum point
+	 * @param max - maximum point
+	 */
 	private void DrawVertex(Graphics g, Point3D min, Point3D max) {
 		for (int i = 0; i < this.graph.graph.ver.size(); i++) {//draw all the vertex in the window
 
@@ -582,7 +666,13 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 			}
 		}
 	}
-
+	
+	/**
+	 * function that draw all the edges on the window
+	 * @param g - this graphics
+	 * @param min - minimum point
+	 * @param max - maximum point
+	 */
 	private void DrawEdges(Graphics g, Point3D min, Point3D max) {
 		for (int i = 0; i < this.graph.graph.ver.size(); i++) {//draw all the edges in the window
 			if(this.graph.graph.edge.get(i)!=null) {//get in only if the source HashMap is exist(and dont removed by remove source vertex)
@@ -629,14 +719,18 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		MyGameGUI holut=new MyGameGUI();
 	}
 
-
+	/**
+	 * function that returns the status of the game.
+	 */
 	@Override
 	public void setIsRun(boolean flag) {
 		this.isRun=flag;
 		
 	}
 
-
+	/**
+	 * function that returns the server game.
+	 */
 	@Override
 	public game_service getGame() {
 		return this.game;
@@ -658,25 +752,9 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		return res;
 	}
 	
-
 	/**
-	 * 
-	 * @param data denote some data to be scaled
-	 * @param r_min the minimum of the range of your data
-	 * @param r_max the maximum of the range of your data
-	 * @param t_min the minimum of the range of your desired target scaling
-	 * @param t_max the maximum of the range of your desired target scaling
-	 * @return
+	 * function that returns the time left to the game.
 	 */
-	public double scale(double data, double r_min, double r_max, 
-			double t_min, double t_max)
-	{
-
-		double res = ((data - r_min) / (r_max-r_min)) * (t_max - t_min) + t_min;
-		return res;
-	}
-
-
 	@Override
 	public double getTimeToEnd() {
 		return game.timeToEnd();

@@ -12,7 +12,6 @@ public class ClockThread extends Thread{
 	JLabel clock;
 
 	public ClockThread(game game,JLabel label) {
-		System.out.println(game.getTimeToEnd());
 		this.seconds=game.getTimeToEnd()/1000;
 		this.clock=label;
 		this.g=game;

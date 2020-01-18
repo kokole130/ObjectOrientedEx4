@@ -50,7 +50,12 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	game_service game;
 	boolean isRun;
 	int map;
-
+	Image backGround;
+	Graphics doubleG;
+	
+	/**
+	 * constructor for the automatic game
+	 */
 	public AutoGame(){
 		isRun=false;
 		InitGUI();
@@ -60,7 +65,9 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	public static void main(String[] args) {
 		AutoGame s = new AutoGame();
 	}
-
+	/**
+	 * Side function that create all the window, the buttons and the game interface.
+	 */
 	private void InitGUI() {
 
 		this.setSize(1400, 1000);
@@ -93,7 +100,40 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 
 		this.setVisible(true);		
 	}
+	/**
+	 * Side function that set the background on another 'Graphics' after we draw the graph,
+	 * for double buffering.
+	 */
+	@Override
+	public void update(Graphics g) {
+		if(backGround==null) {
+			backGround=createImage(this.getSize().width, this.getSize().height);
+			doubleG=backGround.getGraphics();
+		}
+		doubleG.setColor(getBackground());
+		doubleG.fillRect(0, 0, this.getSize().width, this.getSize().height);
+		doubleG.setColor(getForeground());
+		paint(doubleG);
 
+		g.drawImage(backGround,0,0,this);
+		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
+		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
+
+		initMinMax(min, max);
+
+		for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window
+			this.fruits.get(i).DrawFruit(this,min.x(),min.y(),max.x(),max.y());
+		}
+
+		for (int i = 0; i < robots.size(); i++) {
+			robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
+		}
+	}
+	/**
+	 * The main function that manage a dialog between the game to the user.
+	 * first- the user should press set game , to initial a specific map ,
+	 * 
+	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String ans=e.getActionCommand();
@@ -109,7 +149,6 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 					"Scenario",JOptionPane.QUESTION_MESSAGE,null,scenario,scenario[0]);
 			this.map=Integer.parseInt(choose);
 			game=Game_Server.getServer(this.map);
-			System.out.println(game.toString());
 			this.graph.graph.init(game.getGraph());
 			this.initFruits(game.getFruits().toString());
 			robotsFirstLocating();
@@ -129,7 +168,13 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		repaint();
 
 	}
-
+	
+	/**
+	 * function that takes from the server the number of robots for the specific map.
+	 * @param scenario - the map
+	 * @return the number of the robots
+	 * @throws JSONException - if should a problem with the server
+	 */
 	public int getNumOfRobots(int scenario) throws JSONException {
 		game_service temp=Game_Server.getServer(scenario);
 		JSONObject object=new JSONObject(temp.toString());
@@ -138,6 +183,12 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	}
 
 	long start = System.currentTimeMillis();
+	
+	/**
+	 * function that gets from the server the location of the robots and the fruits,
+	 * in time the game is running, and draw them after the changes.
+	 * @param game2
+	 */
 	public  void moveRobots(game_service game2) {
 		if(game.isRunning()) {
 			initRobots(this.game.getRobots().toString());
@@ -177,6 +228,11 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 
 //SCLAES***************************SCALES INITIALIZE*******************************************************
 
+	/**
+	 * function that set the minimum x and y and the maximum x and y on 2 points. (for a good mapping on the window)
+	 * @param min - minimum point
+	 * @param max - maximum point
+	 */
 	public void initMinMax(Point3D min,Point3D max) {
 		for (int i = 0; i < this.graph.graph.ver.size(); i++) {
 			if(this.graph.graph.ver.get(i) != null) {
@@ -215,7 +271,11 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	}
 
 //INIT***************************INTIALIZE MAP OBJECTS******************************************************
-
+	
+	/**
+	 * Side function that initial all the fruits from json string. 
+	 * @param jsonStr - json string 
+	 */
 	public void initFruits(String jsonStr) {
 		try {
 			jsonStr="{"+'"'+"Fruits"+'"'+":"+jsonStr+"}";
@@ -237,7 +297,11 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			e.printStackTrace();
 		}
 	}
-
+	
+	/**
+	 * function that update the location of all the fruits when the game is running.
+	 * @param jsonStr - json string.
+	 */
 	public void updateFruits(String jsonStr) {
 		try {
 			jsonStr="{"+'"'+"Fruits"+'"'+":"+jsonStr+"}";
@@ -265,6 +329,10 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		}
 	}
 
+	/**
+	 * function that initial the location of all the robots from a json stirng.
+	 * @param jsonStr - json string
+	 */
 	public void initRobots(String jsonStr) {
 		try {
 			jsonStr="{"+'"'+"Robots"+'"'+":"+jsonStr+"}";
@@ -291,6 +359,10 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 
 	}
 
+	/**
+	 * function that update the location of all the robots at the game is running.
+	 * @param jsonStr - json string
+	 */
 	public void updateRobots(String jsonStr) {
 		try {
 
@@ -324,6 +396,9 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 
 //DRAW***************************DRAW FUNCTIONS*************************************************************
 
+	/**
+	 * function that draw the graph, fruits and the robots on the window in all stages of the game.
+	 */
 	public void paint(Graphics g) {
 
 		super.paint(g);
@@ -353,6 +428,11 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 
 	}
 
+	/**
+	 * function that draw a robot on the window according to the point we get.
+	 * @param game - this game
+	 * @param pos - the location to draw
+	 */
 	public void DrawRobot(game game,Point3D pos) {
 		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
 		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
@@ -373,6 +453,12 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		g.drawImage(img,(int)xs,(int)ys, null);
 	}
 
+	/**
+	 * function that draw all the vertex on the window
+	 * @param g - this graphics
+	 * @param min - minimum point
+	 * @param max - maximum point
+	 */
 	private void DrawVertex(Graphics g, Point3D min, Point3D max) {
 		for (int i = 0; i < this.graph.graph.ver.size(); i++) {//draw all the vertex in the window
 
@@ -391,6 +477,12 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		}
 	}
 
+	/**
+	 * function that draw all the edges on the window
+	 * @param g - this graphics
+	 * @param min - minimum point
+	 * @param max - maximum point
+	 */
 	private void DrawEdges(Graphics g, Point3D min, Point3D max) {
 		for (int i = 0; i < this.graph.graph.ver.size(); i++) {//draw all the edges in the window
 			if(this.graph.graph.edge.get(i)!=null) {//get in only if the source HashMap is exist(and dont removed by remove source vertex)
@@ -429,16 +521,27 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		}
 	}
 
+	/**
+	 * function that returns the status of the game.
+	 */
 	@Override
 	public void setIsRun(boolean flag) {
 		this.isRun=flag;
 	}
 
+	/**
+	 * function that returns the server game.
+	 */
 	@Override
 	public game_service getGame() {
 		return this.game;
 	}
 
+	/**
+	 * the function that invoked at the moment the user press on start game.
+	 * the function gets the location of the robots and fruits , draw them at the correct location,
+	 * calculates at the same time the value of the user , and when the game is over - present the score to the user.
+	 */
 	@Override
 	public void run() {
 		double sum=0;
@@ -476,6 +579,9 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		return res;
 	}
 
+	/**
+	 * 
+	 */
 	private void robotsFirstLocating() {
 		initFruits(game.getFruits().toString());
 		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
@@ -488,7 +594,6 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		try {
 			num=getNumOfRobots(this.map);
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		for (int i = 0; i <num; i++) {
@@ -528,10 +633,11 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		return s;
 	}
 	
-
+	/**
+	 * function that returns the time left to the game.
+	 */
 	@Override
 	public double getTimeToEnd() {
-		System.out.println(game.timeToEnd());
 		return game.timeToEnd();
 	}
 
