@@ -580,8 +580,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	public void run() {
 		double sum=0;
 		while(game.isRunning()) {
-			kml.writeRobot(this.robots, this.game);
-			kml.writeFruit(this.fruits, this.game);
+			kml.writeRobot(this.robots);
+			kml.writeFruit(this.fruits);
 			updateFruits(game.getFruits().toString());
 			updateRobots(game.getRobots().toString());
 			moveRobots(game);

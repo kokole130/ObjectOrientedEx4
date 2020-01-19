@@ -128,5 +128,6 @@ public class Fruit implements fruits {
 	public void setTag(int flag) {
 		this.tag=flag;
 	}
+	
 
 }

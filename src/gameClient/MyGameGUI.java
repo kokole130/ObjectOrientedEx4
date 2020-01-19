@@ -88,9 +88,6 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		else {
 			JOptionPane.showMessageDialog(frame, "invalid input Pick again!");
 		}
-
-
-
 	}
 	
 	/**
@@ -278,17 +275,6 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 				ClockThread t1=new ClockThread(this, clock);
 				t1.start();
 			}
-			else {
-//				ag=new AutoGame();
-//				this.robots=ag.initStartRobots(this.graph,this.robots,this.fruits,this.map);
-				
-				
-				
-				
-			}
-
-
-
 		}
 		repaint();
 	}
@@ -404,8 +390,8 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	public void run() {
 		double sum=0;
 		while(game.isRunning()) {
-			kml.writeRobot(this.robots, this.game);
-			kml.writeFruit(this.fruits, this.game);
+			kml.writeRobot(this.robots);
+			kml.writeFruit(this.fruits);
 			if(game.timeToEnd()<0.1) {
 				gameover.setText("Game Over - Your value is: "+sum);
 				System.out.println("game over");
@@ -593,7 +579,6 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 				this.robots.get(i).setSrc(src);
 				this.robots.get(i).setPos(tmp.x(), tmp.y());
 				this.robots.get(i).setValue(value);
-				//this.robots.get(i).setSpeed());
 			}
 		}
 
@@ -720,10 +705,7 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 						g.setColor(Color.yellow);
 						g.fillOval(x-5, y-5, 10, 10);
 						g.setColor(Color.RED);
-//
-//						g.drawString(this.graph.graph.edge.get(i).get(j).getWeight()+"",
-//								(int)((xs1+xs2)/2),
-//								(int)((ys1+ys2)/2));													
+													
 					}
 				}
 			}
