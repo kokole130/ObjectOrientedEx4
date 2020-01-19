@@ -27,9 +27,9 @@ import utils.Point3D;
 
 public class Fruit implements fruits {
 	final double EPS=0.0001;
-	Point3D pos;
+	public Point3D pos;
 	double value;
-	int type;
+	public int type;
 	int tag;
 	BufferedImage img;
 
@@ -65,7 +65,7 @@ public class Fruit implements fruits {
 		for (int i = 0; i < edge.size(); i++) {
 			for(edge_data e:edge.get(i).values()) {
 				int src=e.getSrc();
-				int dest=e.getDest();
+				int dest=e.getDest();				
 				double dist=nodes.get(src).getLocation().distance2D(nodes.get(dest).getLocation());
 				double d1=this.pos.distance2D(nodes.get(src).getLocation());
 				double d2=this.pos.distance2D(nodes.get(dest).getLocation());
@@ -77,6 +77,7 @@ public class Fruit implements fruits {
 					else if(nodes.get(e.getSrc()).getLocation().y()<nodes.get(e.getDest()).getLocation().y()&&this.type==-1) {
 						return e;
 					}
+
 				}
 			}
 		}
@@ -127,4 +128,5 @@ public class Fruit implements fruits {
 	public void setTag(int flag) {
 		this.tag=flag;
 	}
+
 }

@@ -46,7 +46,7 @@ import dataStructure.edge_data;
 
 public class MyGameGUI extends JFrame implements game,ActionListener,MouseListener,Runnable{
 
-	Graph_Algo graph=new Graph_Algo();
+	public Graph_Algo graph=new Graph_Algo();
 	public ArrayList<fruits> fruits= new ArrayList<>();
 	public ArrayList<robots> robots=new ArrayList<>();
 	JPanel p = new JPanel();
@@ -62,7 +62,11 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	Image backGround;
 	Graphics doubleG;
 	int robotID;
+	KML_Logger kml=new KML_Logger();
 	
+	public MyGameGUI(DGraph g) {
+		this.graph.graph=g;
+	}
 	
 	/**
 	 * constructor that initial the game , open a dialog text, the user choose the game and the map he wants
@@ -238,10 +242,10 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 					"Scenario",JOptionPane.QUESTION_MESSAGE,null,scenario,scenario[0]);
 			this.map=Integer.parseInt(choose);
 			game=Game_Server.getServer(this.map);
-			System.out.println(game.toString());
 			this.graph.graph.init(game.getGraph());
 			this.initFruits(game.getFruits().toString());
-
+			
+			kml.writeGraph(this.graph.graph);
 			repaint();
 		}
 		if((ans.equals("Add Robot"))&&(isManual)) {
@@ -400,6 +404,8 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	public void run() {
 		double sum=0;
 		while(game.isRunning()) {
+			kml.writeRobot(this.robots, this.game);
+			kml.writeFruit(this.fruits, this.game);
 			if(game.timeToEnd()<0.1) {
 				gameover.setText("Game Over - Your value is: "+sum);
 				System.out.println("game over");
@@ -425,8 +431,19 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 				gameover.setVisible(true);
 			}
 		}
-
-		
+		try {
+			Thread.sleep(2500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	    int reply = JOptionPane.showConfirmDialog(null, "Would you like to save your game in KML file ?", "KML file", JOptionPane.YES_NO_OPTION);
+        if (reply == JOptionPane.YES_OPTION) {
+          String KMLname=JOptionPane.showInputDialog(null, "Write name for KML file");
+          kml.Save(KMLname);
+        }
+        else {
+           System.exit(0);
+        }
 	}
 	
 	/**

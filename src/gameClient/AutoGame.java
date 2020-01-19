@@ -14,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -30,7 +31,9 @@ import Server.Game_Server;
 import Server.game_service;
 import algorithms.Graph_Algo;
 import dataStructure.DGraph;
+import dataStructure.Edge;
 import dataStructure.Vertex;
+import dataStructure.edge_data;
 import dataStructure.node_data;
 import elements.Fruit;
 import elements.Robot;
@@ -52,6 +55,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	int map;
 	Image backGround;
 	Graphics doubleG;
+	KML_Logger kml=new KML_Logger();
+
 
 	/**
 	 * constructor for the automatic game
@@ -154,7 +159,9 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			robotsFirstLocating();
 			this.clock.setText("Time: "+game.timeToEnd()/1000);
 			this.b.setEnabled(true);
-
+			
+			kml.writeGraph(this.graph.graph);
+			
 			repaint();
 		}
 		if(ans.equals("Start Game!")) {
@@ -573,6 +580,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	public void run() {
 		double sum=0;
 		while(game.isRunning()) {
+			kml.writeRobot(this.robots, this.game);
+			kml.writeFruit(this.fruits, this.game);
 			updateFruits(game.getFruits().toString());
 			updateRobots(game.getRobots().toString());
 			moveRobots(game);
@@ -589,6 +598,19 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			}
 			value.setText("Value: "+sum);
 		}
+		try {
+			Thread.sleep(2500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	    int reply = JOptionPane.showConfirmDialog(null, "Would you like to save your game in KML file ?", "KML file", JOptionPane.YES_NO_OPTION);
+        if (reply == JOptionPane.YES_OPTION) {
+          String KMLname=JOptionPane.showInputDialog(null, "Write name for KML file");
+          kml.Save(KMLname);
+        }
+        else {
+           System.exit(0);
+        }
 	}
 
 	/**
@@ -671,4 +693,5 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	public double getTimeToEnd() {
 		return game.timeToEnd();
 	}
+	
 }
