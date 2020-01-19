@@ -143,7 +143,6 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	public void actionPerformed(ActionEvent e) {
 		String ans=e.getActionCommand();
 		if(ans.equals("Set Game")) {
-
 			update(getGraphics());
 
 			JFrame frame = new JFrame();
@@ -159,9 +158,9 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			robotsFirstLocating();
 			this.clock.setText("Time: "+game.timeToEnd()/1000);
 			this.b.setEnabled(true);
-			
+
 			kml.writeGraph(this.graph.graph);
-			
+
 			repaint();
 		}
 		if(ans.equals("Start Game!")) {
@@ -213,27 +212,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 						String p=r.getString("pos");
 						int val=r.getInt("value");
 						Point3D pos=new Point3D(p);
-						
-						Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
-						Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
 
-						initMinMax(min, max);
-						
-//						System.out.println(dest+"@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-//						for (int j = 0; j < fruits.size(); j++) {
-//							System.out.println(fruits.get(j).getTag());
-//							double rx=scale(pos.x(), min.x(), max.x(), 100, 950);
-//							double ry=scale(pos.y(), min.y(), max.y(), 100, 950);
-//							double fx=scale(fruits.get(j).getLocation().x(), min.x(), max.x(), 100, 950);
-//							double fy=scale(fruits.get(j).getLocation().y(), min.y(), max.y(), 100, 950);
-//							Point3D rob=new Point3D(rx, ry);
-//							Point3D fru=new Point3D(fx, fy);
-//							if(Math.abs(rob.distance2D(fru))<5) {
-//								fruits.get(j).setTag(-1);
-//							}
-//
-//						}
-						
 						if(dest==-1) {
 							if((robots.get(rid).getNextPath()).size()==0) {
 								robots.get(rid).setNextPath(robotNextDest(rid));
@@ -242,14 +221,13 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 							else{
 								dest=this.robots.get(rid).getNextPath().remove(0).getKey();
 							}
-							System.out.println("@@@@@@@@");
 							for (int j = 0; j < fruits.size(); j++) {
-								System.out.println(fruits.get(j).getTag());
-								if(fruits.get(j).getEdge(graph.graph.edge, graph.graph.ver).getDest()==dest) {
+								if(fruits.get(j).getEdge(graph.graph.edge, graph.graph.ver)!=null&&
+										fruits.get(j).getEdge(graph.graph.edge, graph.graph.ver).getDest()==dest) {
 									fruits.get(j).setTag(-1);
 								}
 							}
-							
+
 							game2.chooseNextEdge(rid, dest);
 						}
 
@@ -585,9 +563,9 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			updateFruits(game.getFruits().toString());
 			updateRobots(game.getRobots().toString());
 			moveRobots(game);
-			
+
 			if(System.currentTimeMillis() - start> 1000/10){
-				
+
 				repaint();
 				start = System.currentTimeMillis();
 			}
@@ -603,14 +581,14 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-	    int reply = JOptionPane.showConfirmDialog(null, "Would you like to save your game in KML file ?", "KML file", JOptionPane.YES_NO_OPTION);
-        if (reply == JOptionPane.YES_OPTION) {
-          String KMLname=JOptionPane.showInputDialog(null, "Write name for KML file");
-          kml.Save(KMLname);
-        }
-        else {
-           System.exit(0);
-        }
+		int reply = JOptionPane.showConfirmDialog(null, "Would you like to save your game in KML file ?", "KML file", JOptionPane.YES_NO_OPTION);
+		if (reply == JOptionPane.YES_OPTION) {
+			String KMLname=JOptionPane.showInputDialog(null, "Write name for KML file");
+			kml.Save(KMLname);
+		}
+		else {
+			System.exit(0);
+		}
 	}
 
 	/**
@@ -665,6 +643,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		updateFruits(game.getFruits().toString());
 		for (int i = 0; i < fruits.size(); i++) {
 			if(isRun) {
+				if(fruits.get(i).getEdge(graph.graph.edge, graph.graph.ver)!=null){
 					Vertex v = this.graph.graph.ver.get(fruits.get(i).getEdge(graph.graph.edge, graph.graph.ver).getSrc());
 					double tmp = graph.shortestPathDist(this.robots.get(robot).getSrc(),v.getKey());
 					if((tmp<minDistance)&&(fruits.get(i).getTag()==-1)) {
@@ -674,7 +653,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 					}
 				}
 			}
-		
+		}
+
 		if(index == -1) {
 			return new ArrayList<node_data>();
 		}
@@ -693,5 +673,5 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	public double getTimeToEnd() {
 		return game.timeToEnd();
 	}
-	
+
 }

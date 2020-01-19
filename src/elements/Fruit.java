@@ -26,7 +26,7 @@ import gameClient.game;
 import utils.Point3D;
 
 public class Fruit implements fruits {
-	final double EPS=0.0001;
+	final double EPS=0.00015;
 	public Point3D pos;
 	double value;
 	public int type;
@@ -71,15 +71,20 @@ public class Fruit implements fruits {
 				double d2=this.pos.distance2D(nodes.get(dest).getLocation());
 
 				if(d1+d2==dist||(d1+d2+EPS>dist&&d1+d2-EPS<dist)) {
-					if(nodes.get(e.getSrc()).getLocation().y()>nodes.get(e.getDest()).getLocation().y()&&this.type==1) {	
+					if(nodes.get(e.getSrc()).getLocation().y()>nodes.get(e.getDest()).getLocation().y()&&this.type==1) {//if its apple	
 						return e;
 					}
-					else if(nodes.get(e.getSrc()).getLocation().y()<nodes.get(e.getDest()).getLocation().y()&&this.type==-1) {
+					else if(nodes.get(e.getSrc()).getLocation().y()<nodes.get(e.getDest()).getLocation().y()&&this.type==-1) {//if its banana
 						return e;
 					}
-
 				}
 			}
+		}
+		for (int i = 0; i < edge.size(); i++) {
+			for(edge_data e:edge.get(i).values()) {
+				
+			}
+			
 		}
 		return null;
 	}
