@@ -16,14 +16,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -56,6 +54,9 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	Image backGround;
 	Graphics doubleG;
 	KML_Logger kml=new KML_Logger();
+	final double EPS=0.001;
+	Point3D min=new Point3D(Double.MAX_VALUE,Double.MAX_VALUE);
+	Point3D max=new Point3D(Double.MIN_VALUE,Double.MIN_VALUE);
 
 
 	/**
@@ -121,10 +122,6 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		paint(doubleG);
 
 		g.drawImage(backGround,0,0,this);
-		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
-		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
-
-		initMinMax(min, max);
 
 		for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window
 			this.fruits.get(i).DrawFruit(this,min.x(),min.y(),max.x(),max.y());
@@ -154,6 +151,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			this.map=Integer.parseInt(choose);
 			game=Game_Server.getServer(this.map);
 			this.graph.graph.init(game.getGraph());
+			initMinMax(min, max);
 			this.initFruits(game.getFruits().toString());
 			robotsFirstLocating();
 			this.clock.setText("Time: "+game.timeToEnd()/1000);
@@ -214,20 +212,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 						Point3D pos=new Point3D(p);
 
 						if(dest==-1) {
-							if((robots.get(rid).getNextPath()).size()==0) {
-								robots.get(rid).setNextPath(robotNextDest(rid));
-								updateFruits(game.getFruits().toString());
-							}
-							else{
-								dest=this.robots.get(rid).getNextPath().remove(0).getKey();
-							}
-							for (int j = 0; j < fruits.size(); j++) {
-								if(fruits.get(j).getEdge(graph.graph.edge, graph.graph.ver)!=null&&
-										fruits.get(j).getEdge(graph.graph.edge, graph.graph.ver).getDest()==dest) {
-									fruits.get(j).setTag(-1);
-								}
-							}
-
+							this.robots.get(rid).setTag(-1);
+							dest=this.robotNextDest(rid);
 							game2.chooseNextEdge(rid, dest);
 						}
 
@@ -331,12 +317,12 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 				pos = fruits.getJSONObject(i).getJSONObject("Fruit").getString("pos");
 				value=fruits.getJSONObject(i).getJSONObject("Fruit").getDouble("value");
 
+				//this.fruits.get(i).setTag(-1);
 				this.fruits.get(i).setType(type);
 				this.fruits.get(i).setValue(value);
 				this.fruits.get(i).setPos(pos);
+
 			}
-
-
 		}
 
 		catch (Exception e) {
@@ -420,10 +406,6 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 
 		g=(Graphics2D)g;
 
-		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
-		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
-
-		initMinMax(min, max);
 
 		DrawVertex(g,min,max);
 
@@ -449,9 +431,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	 * @param pos - the location to draw
 	 */
 	public void DrawRobot(game game,Point3D pos) {
-		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
-		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
-		initMinMax(min, max);		
+
 		String path="robot.png";
 		File file=new File(path);
 		Image img=null;
@@ -607,13 +587,11 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	}
 
 	/**
-	 * 
+	 * function that locate each robot at the first time.
 	 */
 	private void robotsFirstLocating() {
 		updateFruits(game.getFruits().toString());
-		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
-		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
-		initMinMax(min, max);
+
 		for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window
 			this.fruits.get(i).DrawFruit(this,min.x(),min.y(),max.x(),max.y());
 		}
@@ -624,7 +602,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			e.printStackTrace();
 		}
 		for (int i = 0; i <num; i++) {
-			Vertex temp = graph.graph.ver.get(this.fruits.get(i).getEdge(graph.graph.edge,graph.graph.ver).getSrc());
+			Vertex temp = graph.graph.ver.get(EdgeOfFruit(this.fruits.get(i)).getSrc());
 			game.addRobot(temp.getKey());
 			DrawRobot(this, temp.getLocation());
 		}
@@ -636,34 +614,54 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	 * @param robot id(not vertex)
 	 * @return the path for the next closest fruit
 	 */
-	public List <node_data> robotNextDest(int robot) {
-		int index=-1;
-		double minDistance=Integer.MAX_VALUE;
-		List <node_data> s = new ArrayList<>();
-		updateFruits(game.getFruits().toString());
-		for (int i = 0; i < fruits.size(); i++) {
-			if(isRun) {
-				if(fruits.get(i).getEdge(graph.graph.edge, graph.graph.ver)!=null){
-					Vertex v = this.graph.graph.ver.get(fruits.get(i).getEdge(graph.graph.edge, graph.graph.ver).getSrc());
-					double tmp = graph.shortestPathDist(this.robots.get(robot).getSrc(),v.getKey());
-					if((tmp<minDistance)&&(fruits.get(i).getTag()==-1)) {
-						index=i;
-						minDistance = tmp;
-						s=graph.shortestPath(this.robots.get(robot).getSrc(),v.getKey());
-					}
+	public int robotNextDest(int robot) {
+		if(robots.get(robot).getNextPath().isEmpty()) {
+			int index=-1;
+			double minDistance=Integer.MAX_VALUE;
+			List <node_data> s = new ArrayList<>();
+			for (int i = 0; i < fruits.size(); i++) {
+
+				Vertex v =this.graph.graph.ver.get(EdgeOfFruit(fruits.get(i)).getSrc());
+
+				double tmp = graph.shortestPathDist(this.robots.get(robot).getSrc(),v.getKey());
+				updateFruits(game.getFruits().toString());
+				if(tmp<minDistance&&!sameDest(i)) {
+					index=i;
+					minDistance = tmp;
+					s=graph.shortestPath(this.robots.get(robot).getSrc(),v.getKey());
 				}
+
 			}
+
+			Vertex last = this.graph.graph.ver.get(EdgeOfFruit(fruits.get(index)).getDest());
+			robots.get(robot).setTag(index);
+			s.add(last);
+			s.remove(0);
+			this.robots.get(robot).setNextPath(s);
 		}
 
-		if(index == -1) {
-			return new ArrayList<node_data>();
+		node_data next = this.robots.get(robot).getNextPath().get(0);
+
+		List <node_data> tmp = this.robots.get(robot).getNextPath();
+		tmp.remove(0);
+		this.robots.get(robot).setNextPath(tmp);
+
+		return next.getKey();
+	}
+
+	/**
+	 * Function that vaidate if fruit doesnt have two robots toward him
+	 * @param fruit_id
+	 * @return
+	 */
+	private boolean sameDest(int fruit_id) {
+		for (int i = 0; i < robots.size(); i++) {
+			if(robots.get(i).getTag()==fruit_id) {
+				return true;
+			}
+
 		}
-		//adding the vertex after the fruit, in order to take the fruit
-		Vertex last = this.graph.graph.ver.get(fruits.get(index).getEdge(graph.graph.edge, graph.graph.ver).getDest());
-		fruits.get(index).setTag(robot);
-		s.add(last);
-		s.remove(0);
-		return s;
+		return false;
 	}
 
 	/**
@@ -672,6 +670,45 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	@Override
 	public double getTimeToEnd() {
 		return game.timeToEnd();
+	}
+	
+	/**
+	 * side function that gets a fruit and return the edge its set on it.
+	 * @param f - a fruit
+	 * @return - edge
+	 */
+	public edge_data EdgeOfFruit(fruits f) {
+		for (int i = 0; i < graph.graph.edge.size(); i++) {
+			for(edge_data e:graph.graph.edge.get(i).values()) {	
+				int src=e.getSrc();
+				int dest=e.getDest();	
+
+				double fx=scale(f.getLocation().x(),min.x(),max.x(),100,950);
+				double fy=scale(f.getLocation().y(),min.y(),max.y(),100,950);
+				double srcx=scale(graph.graph.ver.get(src).getLocation().x(),min.x(),max.x(),100,950);
+				double srcy=scale(graph.graph.ver.get(src).getLocation().y(),min.y(),max.y(),100,950);
+				double destx=scale(graph.graph.ver.get(dest).getLocation().x(),min.x(),max.x(),100,950);
+				double desty=scale(graph.graph.ver.get(dest).getLocation().y(),min.y(),max.y(),100,950);
+
+				Point3D fru=new Point3D(fx, fy);
+				Point3D s=new Point3D(srcx, srcy);
+				Point3D d=new Point3D(destx, desty);
+
+				double dist=s.distance2D(d);
+				double d1=fru.distance2D(s);
+				double d2=fru.distance2D(d);
+
+				if(d1+d2==dist||(d1+d2+EPS>dist&&d1+d2-EPS<dist)) {
+					if(srcy>=desty&&f.getType()==1) {//if its apple	&&f.getType()==1
+						return e;
+					}
+					if(srcy<=desty&&f.getType()==-1) {//if its banana&&f.getType()==-1
+						return e;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 }

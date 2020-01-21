@@ -39,4 +39,9 @@ public interface robots {
 	public List<node_data> getNextPath();
 
 	public void setNextPath(List<node_data> robotNextDest);
+	
+	public int getTag();
+	
+	public void setTag(int tag);
+	
 }

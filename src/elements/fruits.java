@@ -26,11 +26,5 @@ public interface fruits {
 	public void setValue(double value);
 
 	public void setPos(String pos);
-
-	public edge_data getEdge(HashMap<Integer, HashMap<Integer, Edge>> edge,ArrayList<Vertex> nodes);
 	
-	public int getTag();
-	
-	public void setTag(int flag);
-
 }

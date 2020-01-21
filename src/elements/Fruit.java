@@ -30,14 +30,14 @@ public class Fruit implements fruits {
 	public Point3D pos;
 	double value;
 	public int type;
-	int tag;
+	public edge_data e;
 	BufferedImage img;
 
 	public Fruit(double v,int t,Point3D p) {
 		this.value=v;
 		this.type=t;
 		this.pos=new Point3D(p);
-		this.tag=-1;
+		this.e=null;
 	}
 
 	@Override
@@ -45,10 +45,6 @@ public class Fruit implements fruits {
 		return this.value;
 	}
 
-	@Override
-	public int getType() {
-		return this.type;
-	}
 
 	@Override
 	public Point3D getLocation() {
@@ -60,34 +56,6 @@ public class Fruit implements fruits {
 		return "fruit- value:"+this.value+" ,type:"+this.type+" ,pos:"+this.pos;
 	}
 
-	@Override
-	public edge_data getEdge(HashMap<Integer, HashMap<Integer, Edge>> edge,ArrayList<Vertex> nodes) {
-		for (int i = 0; i < edge.size(); i++) {
-			for(edge_data e:edge.get(i).values()) {
-				int src=e.getSrc();
-				int dest=e.getDest();				
-				double dist=nodes.get(src).getLocation().distance2D(nodes.get(dest).getLocation());
-				double d1=this.pos.distance2D(nodes.get(src).getLocation());
-				double d2=this.pos.distance2D(nodes.get(dest).getLocation());
-
-				if(d1+d2==dist||(d1+d2+EPS>dist&&d1+d2-EPS<dist)) {
-					if(nodes.get(e.getSrc()).getLocation().y()>nodes.get(e.getDest()).getLocation().y()&&this.type==1) {//if its apple	
-						return e;
-					}
-					else if(nodes.get(e.getSrc()).getLocation().y()<nodes.get(e.getDest()).getLocation().y()&&this.type==-1) {//if its banana
-						return e;
-					}
-				}
-			}
-		}
-		for (int i = 0; i < edge.size(); i++) {
-			for(edge_data e:edge.get(i).values()) {
-				
-			}
-			
-		}
-		return null;
-	}
 
 	@Override
 	public void DrawFruit(game game,double minx,double miny,double maxx,double maxy) {
@@ -125,14 +93,11 @@ public class Fruit implements fruits {
 	public void setPos(String pos) {
 		this.pos=new Point3D(pos);
 	}
-	
-	public int getTag() {
-		return this.tag;
+
+	@Override
+	public int getType() {
+		return this.type;
 	}
-	
-	public void setTag(int flag) {
-		this.tag=flag;
-	}
-	
+
 
 }

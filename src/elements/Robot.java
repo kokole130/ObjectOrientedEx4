@@ -26,6 +26,7 @@ public class Robot implements robots{
 	BufferedImage img;
 	List<node_data> nextPath=new ArrayList<node_data>();
 	public boolean clicked;
+	int tag;
 	
 	
 	
@@ -37,6 +38,7 @@ public class Robot implements robots{
 		this.pos=new Point3D(pos);
 		this.speed=speed;
 		this.clicked=false;
+		this.tag=-1;
 	}
 
 	@Override
@@ -125,6 +127,16 @@ public class Robot implements robots{
 	public void setNextPath(List<node_data> robotNextDest) {
 		this.nextPath=robotNextDest;
 		
+	}
+
+	@Override
+	public int getTag() {
+		return this.tag;
+	}
+
+	@Override
+	public void setTag(int tag) {
+		this.tag=tag;
 	}
 	
 }
