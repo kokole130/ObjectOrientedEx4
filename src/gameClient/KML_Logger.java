@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -81,24 +82,20 @@ public class KML_Logger {
 
     }
 
+
     public void writeRobot(ArrayList<robots> rob) {
-        DateFormat d1 = new SimpleDateFormat("yyyy-MM-dd");
-        DateFormat d2 = new SimpleDateFormat("HH:mm:ss");
-        String d3 = d1.format(new Date(2323223232L));
-        String d4 = d2.format(new Date(2323223232L));
-        String d5 = d3+","+d4+",";
+        LocalDateTime current = LocalDateTime.now();
         
         for (int i=0;i<rob.size();i++){
         	sb.append("<Placemark>\n");
-        	sb.append("      <TimeStamp>\n");
-        	sb.append("        <when>"+d5);
-        	sb.append("</when>\n");
-        	sb.append("      </TimeStamp>\n");
-        	sb.append("      <styleUrl>#hiker-icon</styleUrl>\n");
-        	sb.append("      <Point>\n");
-        	sb.append("        <coordinates>"+rob.get(i).getLocation().x()+","+rob.get(i).getLocation().y()+",0</coordinates>\n");
-        	sb.append("      </Point>\n");
-        	sb.append("    </Placemark>");
+        	sb.append("   <TimeStamp>\n");
+        	sb.append("      <when>"+current+"</when>\n");
+        	sb.append("   </TimeStamp>\n");
+        	sb.append("   <styleUrl>#hiker-icon</styleUrl>\n");
+        	sb.append("   <Point>\n");
+        	sb.append("      <coordinates>"+rob.get(i).getLocation().x()+","+rob.get(i).getLocation().y()+",0</coordinates>\n");
+        	sb.append("   </Point>\n");
+        	sb.append("</Placemark>");
 
         }
     }
@@ -109,31 +106,25 @@ public class KML_Logger {
      * @param game
      */
     public void writeFruit(ArrayList<fruits> fr) {
-        DateFormat d1 = new SimpleDateFormat("yyyy-MM-dd");
-        DateFormat d2 = new SimpleDateFormat("HH:mm:ss");
-        String d3 = d1.format(new Date(2323223232L));
-        String d4 = d2.format(new Date(2323223232L));
-        String d5 = d3+","+d4+",";
-    	
+        LocalDateTime current = LocalDateTime.now();	
         for (int i=0;i<fr.size();i++){
             String type = "#paddle-ylw-circle";//banana
             if (fr.get(i).getType()==1){
                 type = "#paddle-red-circle";//apple
             }
             sb.append("<Placemark>\n");
-            sb.append("      <TimeStamp>\n");
-            sb.append("        <when>"+d5);
-            sb.append("</when>\n");
-            sb.append("      </TimeStamp>\n");
-            sb.append("      <styleUrl>"+type+"</styleUrl>\n");
-            sb.append("      <Point>\n");
-            sb.append("        <coordinates>"+fr.get(i).getLocation().x()+","+fr.get(i).getLocation().y()+",0</coordinates>\\n");
-            sb.append("      </Point>\n");
-            sb.append("    </Placemark>");
-
+            sb.append("   <TimeStamp>\n");
+        	sb.append("      <when>"+current+"</when>\n");
+            sb.append("   </TimeStamp>\n");
+            sb.append("   <styleUrl>"+type+"</styleUrl>\n");
+            sb.append("   <Point>\n");
+            sb.append("      <coordinates>"+fr.get(i).getLocation().x()+","+fr.get(i).getLocation().y()+",0</coordinates>\n");
+            sb.append("   </Point>\n");
+            sb.append("</Placemark>");
 
         }
     }
+
     
     /**
      * function that save that string into a file.

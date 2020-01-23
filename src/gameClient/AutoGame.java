@@ -41,9 +41,9 @@ import utils.Point3D;
 
 public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 
-	Graph_Algo graph=new Graph_Algo();
-	ArrayList<fruits> fruits= new ArrayList<>();
-	ArrayList<robots> robots=new ArrayList<>();
+	public Graph_Algo graph=new Graph_Algo();
+	public ArrayList<fruits> fruits= new ArrayList<>();
+	public ArrayList<robots> robots=new ArrayList<>();
 	JLabel clock=new JLabel("Time:");
 	JLabel value=new JLabel("Value: 0");
 	JPanel p = new JPanel();
@@ -70,6 +70,9 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		this.setVisible(true);
 	}
 	
+	public AutoGame(DGraph g) {
+		this.graph.graph=g;
+	}
 	
 	public static void main(String[] args) {
 		AutoGame s = new AutoGame();
@@ -235,14 +238,14 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			
 			updateRobots(this.game.getRobots().toString());
 			ArrayList<String> log = new ArrayList<>();
-//			if(count%5==0) {
+			if(count%10==0) {
 				log=(ArrayList<String>) game.move();	
-//				count++;
-//			}	
-//			else {
-//				log = (ArrayList<String>)game.getRobots();
-//				count++;
-//			}
+				count++;
+			}	
+			else {
+				log = (ArrayList<String>)game.getRobots();
+				count++;
+			}
 			if(log!=null) {
 				for (int i = 0; i < log.size(); i++) {
 					String robot_json=log.get(i);
@@ -623,7 +626,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			updateRobots(game.getRobots().toString());
 
 			moveRobots(game);
-			try {
+//			try {
 //				double x = 140;
 //				for (int i = 0; i < robots.size(); i++) {
 //					x = closeToFruit(robots.get(i));
@@ -631,11 +634,11 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 //						break;
 //					}
 //				}
-				Thread.sleep(35);
+//				Thread.sleep(1);
 				update(getGraphics());
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
 
 			sum=0;
 			for (int j = 0; j < robots.size(); j++) {
@@ -680,7 +683,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	/**
 	 * function that locate each robot at the first time.
 	 */
-	private void robotsFirstLocating() {
+	public void robotsFirstLocating() {
 		updateFruits(game.getFruits().toString());
 
 		for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window

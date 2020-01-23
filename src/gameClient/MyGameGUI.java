@@ -450,8 +450,6 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 			robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
 		}
 
-
-
 	}
 
 	//INIT***************************INTIALIZE MAP OBJECTS******************************************************
@@ -543,6 +541,7 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 	}
 
+	
 	/**
 	 * function that update the location of all the robots at the game is running.
 	 * @param jsonStr - json string
