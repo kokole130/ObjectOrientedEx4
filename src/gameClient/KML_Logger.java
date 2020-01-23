@@ -100,17 +100,6 @@ public class KML_Logger {
         	sb.append("      </Point>\n");
         	sb.append("    </Placemark>");
 
-
-//
-//        	
-//            sb.append("<Placemark>\n" + 
-//        "      <TimeStamp>\n" + "        <when>")
-//            .append(d5).append("</when>\n").append("      </TimeStamp>\n")
-//            .append("      <styleUrl>#hiker-icon</styleUrl>\n").append("      <Point>\n")
-//            .append("        <coordinates>").
-//            append(rob.get(i).getLocation().x()).append(",").
-//            append(rob.get(i).getLocation().y()).append(",0</coordinates>\n").
-//            append("      </Point>\n").append("    </Placemark>");
         }
     }
     
@@ -142,17 +131,6 @@ public class KML_Logger {
             sb.append("      </Point>\n");
             sb.append("    </Placemark>");
 
-            
-//            
-//            
-//            sb.append("<Placemark>\n" + 
-//            "      <TimeStamp>\n" +"        <when>").append(d5)
-//            .append("</when>\n").append("      </TimeStamp>\n")
-//            .append("      <styleUrl>").append(type).append("</styleUrl>\n")
-//            .append("      <Point>\n").append("        <coordinates>")
-//            .append(fr.get(i).getLocation().x()).append(",")
-//            .append(fr.get(i).getLocation().y()).append(",0</coordinates>\n")
-//            .append("      </Point>\n").append("    </Placemark>");
 
         }
     }
@@ -172,13 +150,5 @@ public class KML_Logger {
 			e.printStackTrace();
 		}
     }
-    public static void main(String[] args) {
-        DateFormat d1 = new SimpleDateFormat("yyyy-MM-dd");
-        DateFormat d2 = new SimpleDateFormat("HH:mm:ss");
-        String d3 = d1.format(new Date(2323223232L));
-        String d4 = d2.format(new Date(2323223232L));
-        String d5 = d3+","+d4+",";
-        System.out.println(d5);
-        
-	}
+
 }

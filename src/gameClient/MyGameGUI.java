@@ -32,6 +32,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.sun.istack.internal.FragmentContentHandler;
+
 import Server.Game_Server;
 import Server.game_service;
 import elements.Fruit;
@@ -52,7 +54,6 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	JPanel p = new JPanel();
 	JLabel clock=new JLabel("Time:");
 	JLabel value=new JLabel("Value: 0");
-	JLabel gameover=new JLabel();
 	JButton b = new JButton("Start Game!");
 	public game_service game;
 	boolean isManual;
@@ -63,11 +64,13 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	Graphics doubleG;
 	int robotID;
 	KML_Logger kml=new KML_Logger();
-	
+	Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
+	Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
+
 	public MyGameGUI(DGraph g) {
 		this.graph.graph=g;
 	}
-	
+
 	/**
 	 * constructor that initial the game , open a dialog text, the user choose the game and the map he wants
 	 * and then start the game.
@@ -75,38 +78,34 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	public MyGameGUI() {
 		isRun=false;
 		JFrame frame = new JFrame();
-		String manulOrAuto=JOptionPane.showInputDialog(frame,"Choose manual(1) game or automatic game(2).");
-		int check = Integer.parseInt(manulOrAuto);
-		if(check==1) {
+		String choose;
+		String []mode= {"Manual Game","Auto Game"};				
+		choose = (String) JOptionPane.showInputDialog(frame,"Choose a mode",
+				"Mode",JOptionPane.QUESTION_MESSAGE,null,mode,mode[0]);
+		if(choose.equals("Manual Game")) {
 			InitGUI();
 			this.setVisible(true);
 			this.isManual=true;
 		}
-		else if(check==2) {
+		else if(choose.equals("Auto Game")) {
 			AutoGame temp = new AutoGame();
 		}
 		else {
 			JOptionPane.showMessageDialog(frame, "invalid input Pick again!");
 		}
 	}
-	
+
 	/**
 	 * Side function that create all the window, the buttons and the game interface.
 	 */
 	private void InitGUI() {
 
-		this.setSize(1400, 1000);
+		this.setSize(1400, 900);
 		this.setLocationRelativeTo(null);
-		
+
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-//		JLabel bg;
-//		ImageIcon img=new ImageIcon("space1.png");
-//		bg=new JLabel("",img,JLabel.CENTER);
-//		bg.setBounds(0, 0, 1400, 1000);
-//		bg.setBackground(getBackground());
-//		this.add(bg);
-//		this.add(b);
+
 		p.add(b);
 		b.setVisible(true);
 		b.setEnabled(false);
@@ -114,7 +113,6 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		b.addActionListener(this);
 		p.add(clock);
 		p.add(value);
-		p.add(gameover);
 		clock.setVisible(true);
 		value.setVisible(true);
 
@@ -144,14 +142,14 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 		this.setVisible(true);
 	}
-	
-//LISTENERS***************************ACTION AND MOUTH LISTENERS*******************************************
-	
+
+	//LISTENERS***************************ACTION AND MOUTH LISTENERS*******************************************
+
 	@Override
 	public void mouseClicked(MouseEvent e) {
 
 	}
-	
+
 	/**
 	 * Side function for the manual game.
 	 * the function recognize when the user press on a vertex where there exist a robot , then
@@ -162,13 +160,11 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		if(isRun&&isManual) {
 			double x=e.getX();
 			double y=e.getY();
-			Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
-			Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
-			initMinMax(min, max);
+
 			for (int i = 0; i < graph.graph.ver.size(); i++) {
 				Vertex v=graph.graph.ver.get(i).copy();
-				double xs=scale(v.getLocation().x(),min.x(),max.x(),100,950);
-				double ys=scale(v.getLocation().y(),min.y(),max.y(),100,950);
+				double xs=scale(v.getLocation().x(),min.x(),max.x(),100,1350);
+				double ys=scale(v.getLocation().y(),min.y(),max.y(),100,850);
 				if((xs+15>x&&x>xs-15)&&(ys+15>y&&y>ys-15)) {//the radius the user should pres
 
 					if(AllRobotFree()) {//if there is no robot that the user press on it.
@@ -240,10 +236,10 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 			this.map=Integer.parseInt(choose);
 			game=Game_Server.getServer(this.map);
 			this.graph.graph.init(game.getGraph());
+			initMinMax(min, max);
 			this.initFruits(game.getFruits().toString());
-			
+
 			kml.writeGraph(this.graph.graph);
-			repaint();
 		}
 		if((ans.equals("Add Robot"))&&(isManual)) {
 			int num=0;
@@ -252,10 +248,7 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 			} catch (JSONException e1) {
 				e1.printStackTrace();
 			}
-			Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
-			Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
 
-			initMinMax(min, max);
 			for (int i = 0; i < num; i++) {
 				JFrame frame = new JFrame();
 				String node_id=JOptionPane.showInputDialog(frame,"Choose ID to locate the robot");
@@ -276,11 +269,11 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 				t1.start();
 			}
 		}
-		repaint();
+		update(getGraphics());
 	}
 
-//ROBOT***************************ROBOT SIDE FUNCTIONS****************************************************
-		
+	//ROBOT***************************ROBOT SIDE FUNCTIONS****************************************************
+
 	/**
 	 * function that takes from the server the number of robots for the specific map.
 	 * @param scenario - the map
@@ -307,7 +300,7 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	}
 
 	long start = System.currentTimeMillis();
-	
+
 	/**
 	 * function that gets from the server the location of the robots and the fruits,
 	 * in time the game is running, and draw them after the changes.
@@ -349,10 +342,10 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 			update(getGraphics());
 		}
 	}
-	
-//SCLAES***************************SCALES INITIALIZE*******************************************************
-	
-	
+
+	//SCLAES***************************SCALES INITIALIZE*******************************************************
+
+
 	/**
 	 * function that set the minimum x and y and the maximum x and y on 2 points. (for a good mapping on the window)
 	 * @param min - minimum point
@@ -379,8 +372,8 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	}
 
 
-//THREAD***************************THREADS*****************************************************************
-	
+	//THREAD***************************THREADS*****************************************************************
+
 	/**
 	 * the function that invoked at the moment the user press on start game.
 	 * the function gets the location of the robots and fruits , draw them at the correct location,
@@ -393,18 +386,20 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 			kml.writeRobot(this.robots);
 			kml.writeFruit(this.fruits);
 			if(game.timeToEnd()<0.1) {
-				gameover.setText("Game Over - Your value is: "+sum);
-				System.out.println("game over");
-				gameover.setVisible(true);
+				JFrame frame = new JFrame();
+				JOptionPane.showMessageDialog(frame, "Game Over - Your value is: "+sum);
 			}
 			updateFruits(game.getFruits().toString());
 			updateRobots(game.getRobots().toString());
 			moveRobots(game);
-			if(System.currentTimeMillis() - start> 1000/10)
-			{
-				repaint();
-				start = System.currentTimeMillis();
+
+			try {
+				Thread.sleep(20);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
+			update(getGraphics());
+
 			sum=0;
 
 			for (int j = 0; j < robots.size(); j++) {
@@ -412,26 +407,25 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 			}
 			value.setText("Value: "+sum);
 			if(game.timeToEnd()<0.1) {
-				gameover.setText("Game Over - Your value is: "+sum);
-				System.out.println("game over");
-				gameover.setVisible(true);
+				JFrame frame = new JFrame();
+				JOptionPane.showMessageDialog(frame, "Game Over - Your value is: "+sum);
 			}
 		}
 		try {
-			Thread.sleep(2500);
+			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-	    int reply = JOptionPane.showConfirmDialog(null, "Would you like to save your game in KML file ?", "KML file", JOptionPane.YES_NO_OPTION);
-        if (reply == JOptionPane.YES_OPTION) {
-          String KMLname=JOptionPane.showInputDialog(null, "Write name for KML file");
-          kml.Save(KMLname);
-        }
-        else {
-           System.exit(0);
-        }
+		int reply = JOptionPane.showConfirmDialog(null, "Would you like to save your game in KML file ?", "KML file", JOptionPane.YES_NO_OPTION);
+		if (reply == JOptionPane.YES_OPTION) {
+			String KMLname=JOptionPane.showInputDialog(null, "Write name for KML file");
+			kml.Save(KMLname);
+		}
+		else {
+			System.exit(0);
+		}
 	}
-	
+
 	/**
 	 * Side function that set the background on another 'Graphics' after we draw the graph,
 	 * for double buffering.
@@ -448,24 +442,20 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		paint(doubleG);
 
 		g.drawImage(backGround,0,0,this);
-		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
-		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
 
-		initMinMax(min, max);
-		synchronized (this) {
-			for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window
-				this.fruits.get(i).DrawFruit(this,min.x(),min.y(),max.x(),max.y());
-			}
-			for (int i = 0; i < robots.size(); i++) {
-				robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
-			}
+		for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window
+			this.fruits.get(i).DrawFruit(this,min.x(),min.y(),max.x(),max.y());
 		}
+		for (int i = 0; i < robots.size(); i++) {
+			robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
+		}
+
 
 
 	}
 
-//INIT***************************INTIALIZE MAP OBJECTS******************************************************
-	
+	//INIT***************************INTIALIZE MAP OBJECTS******************************************************
+
 	/**
 	 * Side function that initial all the fruits from json string. 
 	 * @param jsonStr - json string 
@@ -491,7 +481,7 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * function that update the location of all the fruits when the game is running.
 	 * @param jsonStr - json string.
@@ -522,7 +512,7 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 			e.printStackTrace();
 		}
 	}
-	
+
 	/**
 	 * function that initial the location of all the robots from a json stirng.
 	 * @param jsonStr - json string
@@ -552,7 +542,7 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		}
 
 	}
-	
+
 	/**
 	 * function that update the location of all the robots at the game is running.
 	 * @param jsonStr - json string
@@ -588,8 +578,8 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 	}
 
-//DRAW***************************DRAW FUNCTIONS*************************************************************
-	
+	//DRAW***************************DRAW FUNCTIONS*************************************************************
+
 	/**
 	 * function that draw the graph, fruits and the robots on the window in all stages of the game.
 	 */
@@ -599,11 +589,6 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 
 		g=(Graphics2D)g;
 
-		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
-		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
-
-		initMinMax(min, max);
-
 		DrawVertex(g,min,max);
 
 		g.setColor(Color.RED);
@@ -611,26 +596,14 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		((Graphics2D) g).setStroke(new BasicStroke(3));//for bolding the pen radius.
 
 		DrawEdges(g, min, max);
-
-		for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window
-			this.fruits.get(i).DrawFruit(this,min.x(),min.y(),max.x(),max.y());
-		}
-
-		for (int i = 0; i < robots.size(); i++) {
-			robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
-		}
-
 	}
-	
+
 	/**
 	 * function that draw a robot on the window according to the point we get.
 	 * @param game - this game
 	 * @param pos - the location to draw
 	 */
-	public void DrawRobot(MyGameGUI game,Point3D pos) {
-		Point3D min=new Point3D(Integer.MAX_VALUE, Integer.MAX_VALUE);
-		Point3D max=new Point3D(Integer.MIN_VALUE,Integer.MIN_VALUE );
-		initMinMax(min, max);		
+	public void DrawRobot(MyGameGUI game,Point3D pos) {		
 		String path="robot.png";
 		File file=new File(path);
 		Image img=null;
@@ -642,11 +615,11 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		}
 		Graphics g = game.getGraphics();
 
-		double xs=game.scale(pos.x(), min.x(), max.x(), 100, 950);
-		double ys=game.scale(pos.y(), min.y(), max.y(), 100, 950);
+		double xs=game.scale(pos.x(), min.x(), max.x(), 100, 1350);
+		double ys=game.scale(pos.y(), min.y(), max.y(), 100, 850);
 		g.drawImage(img,(int)xs,(int)ys, null);
 	}
-	
+
 	/**
 	 * function that draw all the vertex on the window
 	 * @param g - this graphics
@@ -661,16 +634,16 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 				Vertex p = this.graph.graph.ver.get(i).copy();//copy this vertex to p
 				g.setColor(Color.BLUE);
 				double x = p.getLocation().x();
-				x=scale(x,min.x(), max.x(),100,950);
+				x=scale(x,min.x(), max.x(),100,1350);
 				double y = p.getLocation().y();
-				y=scale(y, min.y(), max.y(),100,950);
+				y=scale(y, min.y(), max.y(),100,850);
 				g.fillOval((int)x-7,(int)y-7 , 14, 14);//for locating the vertex in the window
 				g.setFont(new Font("Monaco", Font.PLAIN, 22));
 				g.drawString(""+p.getKey(), (int)(x+7),(int)(y+7-15));//for show the key of the vertex
 			}
 		}
 	}
-	
+
 	/**
 	 * function that draw all the edges on the window
 	 * @param g - this graphics
@@ -684,10 +657,10 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 					if(this.graph.graph.edge.get(i).containsKey(j)) {//just when the specific HashMap contains the right edge
 						Vertex v1=this.graph.graph.ver.get(this.graph.graph.edge.get(i).get(j).getSrc()).copy();
 						Vertex v2=this.graph.graph.ver.get(this.graph.graph.edge.get(i).get(j).getDest()).copy();
-						int xs1=(int)scale(v1.getLocation().x(), min.x(), max.x(), 100, 950);
-						int ys1=(int)scale(v1.getLocation().y(), min.y(), max.y(), 100, 950);
-						int xs2=(int)scale(v2.getLocation().x(), min.x(), max.x(), 100, 950);
-						int ys2=(int)scale(v2.getLocation().y(), min.y(), max.y(), 100, 950);
+						int xs1=(int)scale(v1.getLocation().x(), min.x(), max.x(), 100, 1350);
+						int ys1=(int)scale(v1.getLocation().y(), min.y(), max.y(), 100, 850);
+						int xs2=(int)scale(v2.getLocation().x(), min.x(), max.x(), 100, 1350);
+						int ys2=(int)scale(v2.getLocation().y(), min.y(), max.y(), 100, 850);
 
 						g.drawLine(xs1,ys1,xs2,ys2);//draw an edge between v1 and v2
 						int x=0;
@@ -705,16 +678,16 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 						g.setColor(Color.yellow);
 						g.fillOval(x-5, y-5, 10, 10);
 						g.setColor(Color.RED);
-													
+
 					}
 				}
 			}
 		}
 	}
 
-	
-	
-//MAIN***************************MAIN FUNCTION**************************************************************
+
+
+	//MAIN***************************MAIN FUNCTION**************************************************************
 
 	public static void main(String[] args) {
 		MyGameGUI holut=new MyGameGUI();
@@ -726,7 +699,7 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 	@Override
 	public void setIsRun(boolean flag) {
 		this.isRun=flag;
-		
+
 	}
 
 	/**
@@ -752,7 +725,7 @@ public class MyGameGUI extends JFrame implements game,ActionListener,MouseListen
 		double res = ((pos - minpos) / (maxpos-minpos)) * (maxf - minf) + minf;
 		return res;
 	}
-	
+
 	/**
 	 * function that returns the time left to the game.
 	 */

@@ -75,8 +75,8 @@ public class Fruit implements fruits {
 		}
 		Graphics g = game.getGraphics();
 
-		double xs=game.scale(this.pos.x(), minx, maxx, 100, 950);
-		double ys=game.scale(this.pos.y(), miny, maxy, 100, 950);
+		double xs=game.scale(this.pos.x(), minx, maxx, 100, 1350);
+		double ys=game.scale(this.pos.y(), miny, maxy, 100, 850);
 
 		g.drawImage(img,(int)xs,(int)ys, null);	
 

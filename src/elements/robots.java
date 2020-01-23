@@ -44,4 +44,6 @@ public interface robots {
 	
 	public void setTag(int tag);
 	
+	public void setDest(int dest);
+	
 }

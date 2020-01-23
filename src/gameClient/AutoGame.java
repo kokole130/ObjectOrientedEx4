@@ -57,6 +57,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	final double EPS=0.001;
 	Point3D min=new Point3D(Double.MAX_VALUE,Double.MAX_VALUE);
 	Point3D max=new Point3D(Double.MIN_VALUE,Double.MIN_VALUE);
+	int count=0;
+	DialogSQL sql;
 
 
 	/**
@@ -67,7 +69,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		InitGUI();
 		this.setVisible(true);
 	}
-
+	
+	
 	public static void main(String[] args) {
 		AutoGame s = new AutoGame();
 	}
@@ -76,7 +79,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	 */
 	private void InitGUI() {
 
-		this.setSize(1400, 1000);
+		this.setSize(1400, 900);
 		this.setLocationRelativeTo(null);
 
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -99,13 +102,31 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		MenuItem setgame=new MenuItem("Set Game");
 
 		menu1.add(setgame);
+		
+		Menu gameDetails=new Menu("Game Details");
+		menuBar.add(gameDetails);
 
+		MenuItem countPlay=new MenuItem("Amount games Played");
+		MenuItem currentLevel=new MenuItem("Current Level");
+		MenuItem bestScore=new MenuItem("Best Score");
+		MenuItem positionInClass=new MenuItem("Position On Class");
+		gameDetails.add(countPlay);
+		gameDetails.add(currentLevel);
+		gameDetails.add(bestScore);
+		gameDetails.add(positionInClass);
+		
 		this.setMenuBar(menuBar);
 
 		setgame.addActionListener(this);
+		countPlay.addActionListener(this);
+		currentLevel.addActionListener(this);
+		bestScore.addActionListener(this);
+		positionInClass.addActionListener(this);
 
 		this.setVisible(true);		
 	}
+
+
 	/**
 	 * Side function that set the background on another 'Graphics' after we draw the graph,
 	 * for double buffering.
@@ -131,6 +152,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
 		}
 	}
+
+
 	/**
 	 * The main function that manage a dialog between the game to the user.
 	 * first- the user should press set game , to initial a specific map ,
@@ -138,10 +161,9 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		
 		String ans=e.getActionCommand();
 		if(ans.equals("Set Game")) {
-			update(getGraphics());
-
 			JFrame frame = new JFrame();
 			String choose;
 			String []scenario= {"0","1","2","3","4","5","6","7","8","9","10","11","12","13","14","15"
@@ -149,6 +171,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			choose = (String) JOptionPane.showInputDialog(frame,"Choose a map between 0 to 23",
 					"Scenario",JOptionPane.QUESTION_MESSAGE,null,scenario,scenario[0]);
 			this.map=Integer.parseInt(choose);
+			//Game_Server.login(205966781);
 			game=Game_Server.getServer(this.map);
 			this.graph.graph.init(game.getGraph());
 			initMinMax(min, max);
@@ -158,8 +181,6 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			this.b.setEnabled(true);
 
 			kml.writeGraph(this.graph.graph);
-
-			repaint();
 		}
 		if(ans.equals("Start Game!")) {
 			game.startGame();
@@ -169,7 +190,23 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			ClockThread t1=new ClockThread(this, clock);
 			t1.start();
 		}
-		repaint();
+		if(ans.equals("Amount games Played")) {
+			sql=new DialogSQL();
+			sql.AmountOfPlay();
+		}
+		if(ans.equals("Current Level")) {
+			sql=new DialogSQL();
+			sql.currentLevel();
+		}
+		if(ans.equals("Best Score")) {
+			sql=new DialogSQL();
+			sql.bestScore();
+		}
+		if(ans.equals("Position On Class")) {
+			sql=new DialogSQL();
+			sql.PosInClass();
+		}
+		update(getGraphics());
 
 	}
 
@@ -195,9 +232,17 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	 */
 	public  void moveRobots(game_service game2) {
 		if(game.isRunning()) {
-
+			
 			updateRobots(this.game.getRobots().toString());
-			ArrayList<String> log=(ArrayList<String>) game.move();
+			ArrayList<String> log = new ArrayList<>();
+//			if(count%5==0) {
+				log=(ArrayList<String>) game.move();	
+//				count++;
+//			}	
+//			else {
+//				log = (ArrayList<String>)game.getRobots();
+//				count++;
+//			}
 			if(log!=null) {
 				for (int i = 0; i < log.size(); i++) {
 					String robot_json=log.get(i);
@@ -210,20 +255,19 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 						String p=r.getString("pos");
 						int val=r.getInt("value");
 						Point3D pos=new Point3D(p);
-
+						
 						if(dest==-1) {
 							this.robots.get(rid).setTag(-1);
 							dest=this.robotNextDest(rid);
+							robots.get(i).setDest(dest);
 							game2.chooseNextEdge(rid, dest);
 						}
-
 					}
 					catch(JSONException e) {
 						e.printStackTrace();
 					}
 				}
 			}
-			update(getGraphics());
 		}
 	}
 
@@ -317,7 +361,6 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 				pos = fruits.getJSONObject(i).getJSONObject("Fruit").getString("pos");
 				value=fruits.getJSONObject(i).getJSONObject("Fruit").getDouble("value");
 
-				//this.fruits.get(i).setTag(-1);
 				this.fruits.get(i).setType(type);
 				this.fruits.get(i).setValue(value);
 				this.fruits.get(i).setPos(pos);
@@ -395,6 +438,51 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 
 	}
 
+
+	private double closeToFruit(robots r) {  // time = (Weight to next dest)/(robot speed)
+		double ans;
+		int index=r.getTag();
+		fruits f=fruits.get(index);
+		edge_data e=EdgeOfFruit(f);
+		System.out.println(e);
+		System.out.println("Src: "+r.getSrc()+","+"Dest: "+r.getDest() );
+
+		if(e.getSrc()==r.getSrc()&&e.getDest()==r.getDest()) {
+			Vertex a = graph.graph.ver.get(e.getSrc());
+			Vertex b = graph.graph.ver.get(e.getDest());
+			Point3D c = r.getLocation();
+			double ax = scale(a.getLocation().x(), min.x(), max.x(), 100, 1350);
+			double ay = scale(a.getLocation().y(), min.y(), max.y(), 100, 850);
+			Point3D ap = new Point3D(ax,ay);
+			double bx = scale(b.getLocation().x(), min.x(), max.x(), 100, 1350);
+			double by = scale(b.getLocation().y(), min.y(), max.y(), 100, 850);
+			Point3D bp = new Point3D(bx,by);
+			double cx = scale(c.x(), min.x(), max.x(), 100, 1350);
+			double cy = scale(c.y(), min.y(), max.y(), 100, 850);
+			c= new Point3D(cx,cy);
+			double disab = ap.distance2D(bp);
+			double disac = ap.distance2D(c);
+			ans = disac/r.getSpeed();
+			ans=((disac/disab)*e.getWeight())/r.getSpeed();
+			return ans;
+		}
+		else {
+			Point3D rsrc = graph.graph.ver.get(r.getSrc()).getLocation();
+			Point3D rdest =  graph.graph.ver.get(r.getDest()).getLocation();
+			double rsx = scale(rsrc.x(), min.x(), max.x(), 100, 1350);
+			double rsy = scale(rsrc.y(), min.y(), max.y(), 100, 850);
+			double rdx = scale(rdest.x(), min.x(), max.x(), 100, 1350);
+			double rdy = scale(rdest.y(), min.y(), max.y(), 100, 850);
+			rsrc = new Point3D(rsx,rsy);
+			rdest = new Point3D(rdx,rdy);
+			edge_data tmp = graph.graph.edge.get(r.getSrc()).get(r.getDest());
+
+			ans = tmp.getWeight()/r.getSpeed();
+		}
+		return ans/0.1215;
+		//level 3 = ans/0.127
+	}
+
 	//DRAW***************************DRAW FUNCTIONS*************************************************************
 
 	/**
@@ -406,7 +494,6 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 
 		g=(Graphics2D)g;
 
-
 		DrawVertex(g,min,max);
 
 		g.setColor(Color.RED);
@@ -414,14 +501,6 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		((Graphics2D) g).setStroke(new BasicStroke(3));//for bolding the pen radius.
 
 		DrawEdges(g, min, max);
-
-		for (int i = 0; i < fruits.size(); i++) {//draw each fruit on the window
-			this.fruits.get(i).DrawFruit(this,min.x(),min.y(),max.x(),max.y());
-		}
-
-		for (int i = 0; i < robots.size(); i++) {
-			robots.get(i).DrawRobot(this, min.x(), min.y(), max.x(), max.y());;
-		}
 
 	}
 
@@ -443,8 +522,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		}
 		Graphics g = game.getGraphics();
 
-		double xs=game.scale(pos.x(), min.x(), max.x(), 100, 950);
-		double ys=game.scale(pos.y(), min.y(), max.y(), 100, 950);
+		double xs=game.scale(pos.x(), min.x(), max.x(), 100, 1350);
+		double ys=game.scale(pos.y(), min.y(), max.y(), 100, 850);
 		g.drawImage(img,(int)xs,(int)ys, null);
 	}
 
@@ -462,9 +541,9 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 				Vertex p = this.graph.graph.ver.get(i).copy();//copy this vertex to p
 				g.setColor(Color.BLUE);
 				double x = p.getLocation().x();
-				x=scale(x,min.x(), max.x(),100,950);
+				x=scale(x,min.x(), max.x(),100,1350);
 				double y = p.getLocation().y();
-				y=scale(y, min.y(), max.y(),100,950);
+				y=scale(y, min.y(), max.y(),100,850);
 				g.fillOval((int)x-7,(int)y-7 , 14, 14);//for locating the vertex in the window
 				g.setFont(new Font("Monaco", Font.PLAIN, 22));
 				g.drawString(""+p.getKey(), (int)(x+7),(int)(y+7-15));//for show the key of the vertex
@@ -485,10 +564,10 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 					if(this.graph.graph.edge.get(i).containsKey(j)) {//just when the specific HashMap contains the right edge
 						Vertex v1=this.graph.graph.ver.get(this.graph.graph.edge.get(i).get(j).getSrc()).copy();
 						Vertex v2=this.graph.graph.ver.get(this.graph.graph.edge.get(i).get(j).getDest()).copy();
-						int xs1=(int)scale(v1.getLocation().x(), min.x(), max.x(), 100, 950);
-						int ys1=(int)scale(v1.getLocation().y(), min.y(), max.y(), 100, 950);
-						int xs2=(int)scale(v2.getLocation().x(), min.x(), max.x(), 100, 950);
-						int ys2=(int)scale(v2.getLocation().y(), min.y(), max.y(), 100, 950);
+						int xs1=(int)scale(v1.getLocation().x(), min.x(), max.x(), 100, 1350);
+						int ys1=(int)scale(v1.getLocation().y(), min.y(), max.y(), 100, 850);
+						int xs2=(int)scale(v2.getLocation().x(), min.x(), max.x(), 100, 1350);
+						int ys2=(int)scale(v2.getLocation().y(), min.y(), max.y(), 100, 850);
 
 						g.drawLine(xs1,ys1,xs2,ys2);//draw an edge between v1 and v2
 						int x=0;
@@ -542,12 +621,20 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			kml.writeFruit(this.fruits);
 			updateFruits(game.getFruits().toString());
 			updateRobots(game.getRobots().toString());
+
 			moveRobots(game);
-
-			if(System.currentTimeMillis() - start> 1000/10){
-
-				repaint();
-				start = System.currentTimeMillis();
+			try {
+//				double x = 140;
+//				for (int i = 0; i < robots.size(); i++) {
+//					x = closeToFruit(robots.get(i));
+//					if(x==15) {
+//						break;
+//					}
+//				}
+				Thread.sleep(35);
+				update(getGraphics());
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 
 			sum=0;
@@ -556,15 +643,19 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			}
 			value.setText("Value: "+sum);
 		}
+		game.stopGame();
 		try {
-			Thread.sleep(2500);
+			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		System.out.println(game);
 		int reply = JOptionPane.showConfirmDialog(null, "Would you like to save your game in KML file ?", "KML file", JOptionPane.YES_NO_OPTION);
 		if (reply == JOptionPane.YES_OPTION) {
 			String KMLname=JOptionPane.showInputDialog(null, "Write name for KML file");
 			kml.Save(KMLname);
+			//game.sendKML(KMLname+".kml"); // Should be your KML (will not work on case -1).
+
 		}
 		else {
 			System.exit(0);
@@ -615,36 +706,31 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	 * @return the path for the next closest fruit
 	 */
 	public int robotNextDest(int robot) {
-		if(robots.get(robot).getNextPath().isEmpty()) {
-			int index=-1;
-			double minDistance=Integer.MAX_VALUE;
-			List <node_data> s = new ArrayList<>();
-			for (int i = 0; i < fruits.size(); i++) {
+		int index=-1;
+		double minDistance=Integer.MAX_VALUE;
+		List <node_data> s = new ArrayList<>();
+		for (int i = 0; i < fruits.size(); i++) {
 
-				Vertex v =this.graph.graph.ver.get(EdgeOfFruit(fruits.get(i)).getSrc());
+			Vertex v =this.graph.graph.ver.get(EdgeOfFruit(fruits.get(i)).getSrc());
 
-				double tmp = graph.shortestPathDist(this.robots.get(robot).getSrc(),v.getKey());
-				updateFruits(game.getFruits().toString());
-				if(tmp<minDistance&&!sameDest(i)) {
-					index=i;
-					minDistance = tmp;
-					s=graph.shortestPath(this.robots.get(robot).getSrc(),v.getKey());
-				}
-
+			double tmp = graph.shortestPathDist(this.robots.get(robot).getSrc(),v.getKey());
+			updateFruits(game.getFruits().toString());
+			if(tmp<minDistance&&!sameDest(i)) {//computing the closest fruit to the robot(source of the fruit)
+				index=i;
+				minDistance = tmp;
+				s=graph.shortestPath(this.robots.get(robot).getSrc(),v.getKey());
 			}
 
-			Vertex last = this.graph.graph.ver.get(EdgeOfFruit(fruits.get(index)).getDest());
-			robots.get(robot).setTag(index);
-			s.add(last);
-			s.remove(0);
-			this.robots.get(robot).setNextPath(s);
 		}
+		//inorder to collect the fruit we need to add the dest of the fruit
+		Vertex last = this.graph.graph.ver.get(EdgeOfFruit(fruits.get(index)).getDest());
+		//changing the robot to 'taker of a specific fruit'
+		robots.get(robot).setTag(index);
+		s.add(last);
+		s.remove(0);
 
-		node_data next = this.robots.get(robot).getNextPath().get(0);
 
-		List <node_data> tmp = this.robots.get(robot).getNextPath();
-		tmp.remove(0);
-		this.robots.get(robot).setNextPath(tmp);
+		node_data next = s.get(0);
 
 		return next.getKey();
 	}
@@ -659,7 +745,6 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			if(robots.get(i).getTag()==fruit_id) {
 				return true;
 			}
-
 		}
 		return false;
 	}
@@ -671,7 +756,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 	public double getTimeToEnd() {
 		return game.timeToEnd();
 	}
-	
+
 	/**
 	 * side function that gets a fruit and return the edge its set on it.
 	 * @param f - a fruit
@@ -683,12 +768,15 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 				int src=e.getSrc();
 				int dest=e.getDest();	
 
-				double fx=scale(f.getLocation().x(),min.x(),max.x(),100,950);
-				double fy=scale(f.getLocation().y(),min.y(),max.y(),100,950);
-				double srcx=scale(graph.graph.ver.get(src).getLocation().x(),min.x(),max.x(),100,950);
-				double srcy=scale(graph.graph.ver.get(src).getLocation().y(),min.y(),max.y(),100,950);
-				double destx=scale(graph.graph.ver.get(dest).getLocation().x(),min.x(),max.x(),100,950);
-				double desty=scale(graph.graph.ver.get(dest).getLocation().y(),min.y(),max.y(),100,950);
+				/*
+				 * scaling the points inorder to optimize them to our graph
+				 */
+				double fx=scale(f.getLocation().x(),min.x(),max.x(),100,1350);
+				double fy=scale(f.getLocation().y(),min.y(),max.y(),100,850);
+				double srcx=scale(graph.graph.ver.get(src).getLocation().x(),min.x(),max.x(),100,1350);
+				double srcy=scale(graph.graph.ver.get(src).getLocation().y(),min.y(),max.y(),100,850);
+				double destx=scale(graph.graph.ver.get(dest).getLocation().x(),min.x(),max.x(),100,1350);
+				double desty=scale(graph.graph.ver.get(dest).getLocation().y(),min.y(),max.y(),100,850);
 
 				Point3D fru=new Point3D(fx, fy);
 				Point3D s=new Point3D(srcx, srcy);
@@ -698,11 +786,12 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 				double d1=fru.distance2D(s);
 				double d2=fru.distance2D(d);
 
+				//comparing the edge distance infront of the, two distances that fruit is separated
 				if(d1+d2==dist||(d1+d2+EPS>dist&&d1+d2-EPS<dist)) {
-					if(srcy>=desty&&f.getType()==1) {//if its apple	&&f.getType()==1
+					if(srcy>=desty&&f.getType()==1) {
 						return e;
 					}
-					if(srcy<=desty&&f.getType()==-1) {//if its banana&&f.getType()==-1
+					if(srcy<=desty&&f.getType()==-1) {
 						return e;
 					}
 				}
