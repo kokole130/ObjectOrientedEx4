@@ -49,6 +49,7 @@ public class SimpleGameClient {
 			line = new JSONObject(info);
 			JSONObject ttt = line.getJSONObject("GameServer");
 			int rs = ttt.getInt("robots");
+			System.out.println( ttt.getInt("moves"));
 			System.out.println(info);
 			System.out.println(g);
 			// the list of fruits should be considered in your solution
@@ -64,6 +65,20 @@ public class SimpleGameClient {
 		// should be a Thread!!!
 		while(game.isRunning()) {
 			moveRobots(game, gg);
+		}
+		String info2 = game.toString();
+
+		JSONObject ttt;
+		try {
+			JSONObject line2 = new JSONObject(info2);
+
+			ttt = line2.getJSONObject("GameServer");
+			int rs = ttt.getInt("robots");
+			System.out.println( ttt.getInt("moves"));
+
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		String results = game.toString();
 		System.out.println("Game Over: "+results);

@@ -32,8 +32,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.sun.istack.internal.FragmentContentHandler;
-
 import Server.Game_Server;
 import Server.game_service;
 import elements.Fruit;

@@ -238,7 +238,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			
 			updateRobots(this.game.getRobots().toString());
 			ArrayList<String> log = new ArrayList<>();
-			if(count%10==0) {
+			if(count%8==0) {
 				log=(ArrayList<String>) game.move();	
 				count++;
 			}	
@@ -634,7 +634,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 //						break;
 //					}
 //				}
-//				Thread.sleep(1);
+//				Thread.sleep((long) 0.1);
 				update(getGraphics());
 //			} catch (InterruptedException e) {
 //				e.printStackTrace();
@@ -647,6 +647,8 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 			value.setText("Value: "+sum);
 		}
 		game.stopGame();
+		game.sendKML("9.kml");
+
 		try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
@@ -657,6 +659,7 @@ public class AutoGame extends JFrame implements Runnable,game, ActionListener{
 		if (reply == JOptionPane.YES_OPTION) {
 			String KMLname=JOptionPane.showInputDialog(null, "Write name for KML file");
 			kml.Save(KMLname);
+
 			//game.sendKML(KMLname+".kml"); // Should be your KML (will not work on case -1).
 
 		}
